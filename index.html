@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Qualidade – Acompanhamento de Treinamentos</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Portal de Qualidade</h1>
+    <button id="logoutBtn">Sair</button>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#" data-section="dashboard">Dashboard</a></li>
+      <li><a href="#" data-section="trainings">Treinamentos</a></li>
+      <li><a href="#" data-section="participants">Participantes</a></li>
+      <li><a href="#" data-section="enrollments">Matrículas</a></li>
+      <li><a href="#" data-section="import">Importar Excel</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="dashboard" class="active">
+      <h2>Dashboard</h2>
+      <div class="charts">
+        <canvas id="complianceChart"></canvas>
+        <canvas id="trainingsByAreaChart"></canvas>
+        <canvas id="complianceByAreaChart"></canvas>
+        <canvas id="hoursPerParticipantChart"></canvas>
+      </div>
+    </section>
+
+    <section id="trainings">
+      <h2>Treinamentos</h2>
+      <button id="newTrainingBtn">+ Novo Treinamento</button>
+      <div id="trainingsList"></div>
+    </section>
+
+    <section id="participants">
+      <h2>Participantes</h2>
+      <button id="newParticipantBtn">+ Novo Participante</button>
+      <div id="participantsList"></div>
+    </section>
+
+    <section id="enrollments">
+      <h2>Matrículas</h2>
+      <button id="newEnrollmentBtn">+ Nova Matrícula</button>
+      <div id="enrollmentsList"></div>
+    </section>
+
+    <section id="import">
+      <h2>Importar Excel</h2>
+      <input type="file" id="excelFile" accept=".xlsx, .xls">
+      <button id="importExcelBtn">Importar</button>
+    </section>
+  </main>
+
+  <!-- Scripts -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
