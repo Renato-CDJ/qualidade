@@ -1,35 +1,461 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Controle de Qualidade — Login</title>
-  <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Treinamentos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <main class="centered">
-    <section class="login-card">
-      <h1>Controle de Qualidade</h1>
-      <p>Faça login como Administrador ou Usuário</p>
-
-      <form id="loginForm">
-        <label for="loginUser">Usuário (email do ADM ou seu nome)</label>
-        <input id="loginUser" placeholder="qualidade@grupo ou seu nome" required />
-
-        <label for="loginPass">Senha (apenas para ADM)</label>
-        <input id="loginPass" type="password" placeholder="Senha (se ADM)" />
-
-        <div class="row">
-          <button type="submit" class="btn-primary">Entrar</button>
-          <button id="demoBtn" type="button" class="btn-secondary">Entrar como Demo</button>
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-user-graduate"></i>
+                <h1>Sistema de Treinamentos</h1>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Senha" required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </button>
+            </form>
         </div>
-      </form>
+    </div>
 
-      <p class="hint">ADM (fallback): <strong>qualidade@grupo</strong> / senha: <strong>admin123</strong></p>
-      <p class="hint">Observação: Para logins com e-mail reais, o Firebase Auth será usado.</p>
-    </section>
-  </main>
+    <!-- Sistema Principal -->
+    <div id="mainSystem" class="main-system hidden">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-user-graduate"></i> Sistema de Treinamentos</h1>
+            </div>
+            <div class="header-right">
+                <button id="themeToggle" class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="user-info">
+                    <span id="userWelcome">Bem-vindo, Usuário</span>
+                    <button id="logoutBtn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-  <script type="module" src="js/auth.js"></script>
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="treinamento">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Treinamento
+            </button>
+            <button class="tab-btn" data-tab="treinados">
+                <i class="fas fa-user-check"></i>
+                Treinados
+            </button>
+            <button class="tab-btn" data-tab="desligamentos">
+                <i class="fas fa-user-times"></i>
+                Desligamentos
+            </button>
+        </nav>
+
+        <!-- Aba Treinamento -->
+        <div id="treinamento" class="tab-content active">
+            <div class="content-header">
+                <h2><i class="fas fa-chalkboard-teacher"></i> Gerenciamento de Treinamentos</h2>
+                <div class="action-buttons">
+                    <button id="addTrainingBtn" class="btn btn-primary admin-only">
+                        <i class="fas fa-plus"></i>
+                        Adicionar Novo Treinamento
+                    </button>
+                    <button id="trackingBtn" class="btn btn-secondary">
+                        <i class="fas fa-chart-line"></i>
+                        Acompanhamento
+                    </button>
+                </div>
+            </div>
+
+            <!-- Seção Novo Treinamento -->
+            <div id="newTrainingSection" class="section hidden">
+                <div class="section-header">
+                    <h3>Novo Treinamento</h3>
+                    <div class="section-actions">
+                        <input type="file" id="importTrainingExcel" accept=".xlsx,.xls,.csv" class="hidden">
+                        <button id="importTrainingBtn" class="btn btn-outline admin-only">
+                            <i class="fas fa-file-excel"></i>
+                            Importar Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchTraining" placeholder="Pesquisar colaborador...">
+                    </div>
+                    <div class="filter-controls">
+                        <select id="filterTurno">
+                            <option value="">Todos os Turnos</option>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                        <select id="filterCarteira">
+                            <option value="">Todas as Carteiras</option>
+                            <option value="Caixa">Caixa</option>
+                            <option value="Carrefour">Carrefour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="trainingTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>Turno</th>
+                                <th>Carteira</th>
+                                <th class="admin-only">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <form id="addTrainingForm" class="form-container admin-only">
+                    <div class="form-row">
+                        <input type="text" id="colaboradorName" placeholder="Nome do Colaborador" required>
+                        <select id="turnoSelect" required>
+                            <option value="">Selecione o Turno</option>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                        <select id="carteiraSelect" required>
+                            <option value="">Selecione a Carteira</option>
+                            <option value="Caixa">Caixa</option>
+                            <option value="Carrefour">Carrefour</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Adicionar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Seção Acompanhamento -->
+            <div id="trackingSection" class="section hidden">
+                <div class="section-header">
+                    <h3>Acompanhamento de Treinamentos</h3>
+                    <div class="section-actions">
+                        <input type="file" id="importTrackingExcel" accept=".xlsx,.xls,.csv" class="hidden">
+                        <button id="importTrackingBtn" class="btn btn-outline admin-only">
+                            <i class="fas fa-file-excel"></i>
+                            Importar Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchTracking" placeholder="Pesquisar colaborador...">
+                    </div>
+                    <div class="filter-controls">
+                        <select id="filterTrackingTurno">
+                            <option value="">Todos os Turnos</option>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                        <select id="filterTrackingStatus">
+                            <option value="">Todos os Status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Desligado">Desligado</option>
+                            <option value="Remanejado">Remanejado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="trackingTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>CPF</th>
+                                <th>Turno</th>
+                                <th>Carteira</th>
+                                <th>1º Dia</th>
+                                <th>2º Dia</th>
+                                <th>Status</th>
+                                <th class="admin-only">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <form id="addTrackingForm" class="form-container admin-only">
+                    <div class="form-row">
+                        <input type="text" id="trackingColaborador" placeholder="Nome do Colaborador" required>
+                        <input type="text" id="trackingCPF" placeholder="CPF" required>
+                        <select id="trackingTurno" required>
+                            <option value="">Turno</option>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                        <select id="trackingCarteira" required>
+                            <option value="">Carteira</option>
+                            <option value="Caixa">Caixa</option>
+                            <option value="Carrefour">Carrefour</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <select id="tracking1Dia" required>
+                            <option value="">1º Dia</option>
+                            <option value="Presente">Presente</option>
+                            <option value="Não compareceu">Não compareceu</option>
+                            <option value="Desistência">Desistência</option>
+                        </select>
+                        <select id="tracking2Dia" required>
+                            <option value="">2º Dia</option>
+                            <option value="Presente">Presente</option>
+                            <option value="Não compareceu">Não compareceu</option>
+                            <option value="Desistência">Desistência</option>
+                        </select>
+                        <select id="trackingStatus" required>
+                            <option value="">Status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Desligado">Desligado</option>
+                            <option value="Remanejado">Remanejado</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Adicionar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Gráficos de Treinamento -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4>Distribuição por Turno</h4>
+                    <canvas id="turnoChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>Status dos Treinamentos</h4>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Treinados -->
+        <div id="treinados" class="tab-content">
+            <div class="content-header">
+                <h2><i class="fas fa-user-check"></i> Operadores Treinados</h2>
+                <div class="action-buttons">
+                    <input type="file" id="importTrainedExcel" accept=".xlsx,.xls,.csv" class="hidden">
+                    <button id="importTrainedBtn" class="btn btn-outline admin-only">
+                        <i class="fas fa-file-excel"></i>
+                        Importar Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchTrained" placeholder="Pesquisar operador...">
+                </div>
+                <div class="filter-controls">
+                    <select id="filterTrainedTurno">
+                        <option value="">Todos os Turnos</option>
+                        <option value="Manhã">Manhã</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Integral">Integral</option>
+                    </select>
+                    <input type="text" id="filterSupervisor" placeholder="Filtrar por Supervisor">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="trainedTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome do Operador</th>
+                            <th>Supervisor</th>
+                            <th>Coordenador</th>
+                            <th>Turno</th>
+                            <th>Admissão</th>
+                            <th>Tempo de Empresa</th>
+                            <th>Campanhas</th>
+                            <th class="admin-only">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dados serão inseridos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <form id="addTrainedForm" class="form-container admin-only">
+                <div class="form-row">
+                    <input type="text" id="trainedNome" placeholder="Nome do Operador" required>
+                    <input type="text" id="trainedSupervisor" placeholder="Supervisor" required>
+                    <input type="text" id="trainedCoordenador" placeholder="Coordenador" required>
+                    <select id="trainedTurno" required>
+                        <option value="">Turno</option>
+                        <option value="Manhã">Manhã</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Integral">Integral</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <input type="date" id="trainedAdmissao" required>
+                    <input type="text" id="trainedCampanhas" placeholder="Campanhas (Data - Produto)" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Adicionar
+                    </button>
+                </div>
+            </form>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4>Operadores por Turno</h4>
+                    <canvas id="trainedTurnoChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba Desligamentos -->
+        <div id="desligamentos" class="tab-content">
+            <div class="content-header">
+                <h2><i class="fas fa-user-times"></i> Operadores Desligados</h2>
+                <div class="action-buttons">
+                    <input type="file" id="importDesligamentosExcel" accept=".xlsx,.xls,.csv" class="hidden">
+                    <button id="importDesligamentosBtn" class="btn btn-outline admin-only">
+                        <i class="fas fa-file-excel"></i>
+                        Importar Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchDesligamentos" placeholder="Pesquisar operador...">
+                </div>
+                <div class="filter-controls">
+                    <select id="filterDesligamentosCarteira">
+                        <option value="">Todas as Carteiras</option>
+                        <option value="Caixa">Caixa</option>
+                        <option value="Carrefour">Carrefour</option>
+                    </select>
+                    <select id="filterDesligamentosStatus">
+                        <option value="">Todos os Status</option>
+                        <option value="Aviso Prévio">Aviso Prévio</option>
+                        <option value="Sem Aviso Prévio">Sem Aviso Prévio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="desligamentosTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Operador</th>
+                            <th>Carteira</th>
+                            <th>Data de Admissão</th>
+                            <th>Dias na Empresa</th>
+                            <th>Motivo</th>
+                            <th>Status</th>
+                            <th>Data Desligamento</th>
+                            <th>Agência</th>
+                            <th class="admin-only">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dados serão inseridos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <form id="addDesligamentoForm" class="form-container admin-only">
+                <div class="form-row">
+                    <input type="text" id="desligamentoOperador" placeholder="Nome do Operador" required>
+                    <select id="desligamentoCarteira" required>
+                        <option value="">Carteira</option>
+                        <option value="Caixa">Caixa</option>
+                        <option value="Carrefour">Carrefour</option>
+                    </select>
+                    <input type="date" id="desligamentoAdmissao" required>
+                    <input type="text" id="desligamentoMotivo" placeholder="Motivo" required>
+                </div>
+                <div class="form-row">
+                    <select id="desligamentoStatus" required>
+                        <option value="">Status</option>
+                        <option value="Aviso Prévio">Aviso Prévio</option>
+                        <option value="Sem Aviso Prévio">Sem Aviso Prévio</option>
+                    </select>
+                    <input type="date" id="desligamentoData" required>
+                    <select id="desligamentoAgencia" required>
+                        <option value="">Agência</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Adicionar
+                    </button>
+                </div>
+            </form>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4>Motivos de Desligamento</h4>
+                    <canvas id="desligamentosChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Edição -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Editar Registro</h3>
+                <button id="closeModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <!-- Conteúdo será inserido dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button id="saveEdit" class="btn btn-primary">Salvar</button>
+                <button id="cancelEdit" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
