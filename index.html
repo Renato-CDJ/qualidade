@@ -7,6 +7,37 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Adicionando Firebase SDK v9 -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdLbmyvda93ixUTiGrmIVsFxpJuM_bMsg",
+            authDomain: "qualidade-bab05.firebaseapp.com",
+            projectId: "qualidade-bab05",
+            storageBucket: "qualidade-bab05.firebasestorage.app",
+            messagingSenderId: "319259616965",
+            appId: "1:319259616965:web:c3f33efa498dfe3956f2ac",
+            measurementId: "G-XFYGHTGXMW"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Make Firebase available globally
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseAnalytics = analytics;
+    </script>
 </head>
 <body>
     <!-- Tela de Login -->
@@ -253,6 +284,86 @@
                 </form>
             </div>
 
+            <!-- Nova seção para gerenciamento de status dos treinamentos -->
+            <div class="section">
+                <div class="section-header">
+                    <h3>Status dos Colaboradores em Treinamento</h3>
+                </div>
+
+                <!-- Reorganizando layout para ficar lado a lado -->
+                <div class="training-status-layout">
+                    <div class="training-stats-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Estatísticas</h4>
+                        <div class="training-stats">
+                            <div class="stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="totalTrainings">0</span>
+                                    <span class="stat-label">Total de Treinamentos</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-check-circle"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="appliedTrainings">0</span>
+                                    <span class="stat-label">Aplicados</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-clock"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="pendingTrainings">0</span>
+                                    <span class="stat-label">Pendentes</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-times-circle"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="notAppliedTrainings">0</span>
+                                    <span class="stat-label">Não Aplicados</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="training-table-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Controles</h4>
+                        <div class="search-filter-bar">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchTrainingStatus" placeholder="Pesquisar colaborador...">
+                            </div>
+                            <div class="filter-controls">
+                                <select id="filterTrainingStatus">
+                                    <option value="">Todos os Status</option>
+                                    <option value="Aplicado">Treinamento Aplicado</option>
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Não Aplicado">Não Aplicado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="trainingStatusTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>Turno</th>
+                                <th>Carteira</th>
+                                <th>Data Adicionado</th>
+                                <th>Status do Treinamento</th>
+                                <th class="admin-only">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Gráficos de Treinamento -->
             <div class="charts-container">
                 <div class="chart-card">
@@ -262,6 +373,16 @@
                 <div class="chart-card">
                     <h4>Status dos Treinamentos</h4>
                     <canvas id="statusChart"></canvas>
+                </div>
+                <!-- Adicionando gráfico de status por carteira -->
+                <div class="chart-card">
+                    <h4>Status por Carteira</h4>
+                    <canvas id="carteiraStatusChart"></canvas>
+                </div>
+                <!-- Adicionando nova seção de estatísticas e status de treinamentos -->
+                <div class="chart-card">
+                    <h4>Status de Aplicação dos Treinamentos</h4>
+                    <canvas id="trainingStatusChart"></canvas>
                 </div>
             </div>
         </div>
@@ -337,6 +458,57 @@
                 </div>
             </form>
 
+            <!-- Seção de status dos colaboradores treinados -->
+            <div class="section">
+                <div class="section-header">
+                    <h3>Status dos Colaboradores Treinados</h3>
+                </div>
+
+                <div class="training-status-layout">
+                    <div class="training-stats-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Estatísticas</h4>
+                        <div class="training-stats">
+                            <div class="stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="totalTrained">0</span>
+                                    <span class="stat-label">Total de Treinados</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-user-check"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="activeTrained">0</span>
+                                    <span class="stat-label">Ativos</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-clock"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="experiencedTrained">0</span>
+                                    <span class="stat-label">Experientes (>6 meses)</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-star"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="multipleCampaignsTrained">0</span>
+                                    <span class="stat-label">Múltiplas Campanhas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="training-table-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Análise</h4>
+                        <div class="chart-card">
+                            <h5>Status dos Treinados</h5>
+                            <canvas id="trainedStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="charts-container">
                 <div class="chart-card">
                     <h4>Operadores por Turno</h4>
@@ -347,6 +519,57 @@
 
         <!-- Aba Desligamentos -->
         <div id="desligamentos" class="tab-content">
+            <!-- Seção de status dos colaboradores desligados -->
+            <div class="section">
+                <div class="section-header">
+                    <h3>Status dos Colaboradores Desligados</h3>
+                </div>
+
+                <div class="training-status-layout">
+                    <div class="training-stats-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Estatísticas</h4>
+                        <div class="training-stats">
+                            <div class="stat-card">
+                                <i class="fas fa-user-times"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="totalDesligados">0</span>
+                                    <span class="stat-label">Total de Desligados</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-calendar-check"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="avisoDesligados">0</span>
+                                    <span class="stat-label">Com Aviso Prévio</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-calendar-times"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="semAvisoDesligados">0</span>
+                                    <span class="stat-label">Sem Aviso Prévio</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="avgDaysDesligados">0</span>
+                                    <span class="stat-label">Média de Dias</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="training-table-container">
+                        <h4 style="margin-bottom: 20px; color: var(--text-primary);">Análise</h4>
+                        <div class="chart-card">
+                            <h5>Status dos Desligamentos</h5>
+                            <canvas id="desligadosStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="content-header">
                 <h2><i class="fas fa-user-times"></i> Operadores Desligados</h2>
                 <div class="action-buttons">
@@ -428,6 +651,7 @@
                 </div>
             </form>
 
+            <!-- Gráficos de Desligamentos -->
             <div class="charts-container">
                 <div class="chart-card">
                     <h4>Motivos de Desligamento</h4>
@@ -456,6 +680,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Modificando script para ser módulo -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
