@@ -450,106 +450,128 @@ class TrainingSystem {
   }
 
   switchTab(tabName) {
-    // Atualizar botões
-    document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
-
-    // Atualizar conteúdo
-    document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
-    document.getElementById(tabName).classList.add("active")
-
-    // Renderizar tabela da aba ativa
-    this.renderTable(tabName)
-    this.updateCharts()
+  const tabMap = {
+    treinamento: "training",
+    treinados: "trained",
+    desligamentos: "desligamentos"
   }
+  const normalizedTab = tabMap[tabName] || tabName
+
+  // Atualizar botões
+  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+
+  // Atualizar conteúdo
+  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
+  document.getElementById(tabName).classList.add("active")
+
+  // Renderizar tabela da aba ativa
+  this.renderTable(normalizedTab)
+  this.updateCharts()
+}
+
 
   showOnlySection(sectionId, tabName = "treinamento") {
-    // Hide main overview for the specific tab
-    const mainOverview = document.getElementById(
-      `${tabName === "treinados" ? "trainedMainOverviewSection" : tabName === "desligamentos" ? "desligadosMainOverviewSection" : "mainOverviewSection"}`,
-    )
-    if (mainOverview) {
-      mainOverview.classList.add("hidden")
-    }
-
-    // Hide all other sections in the tab
-    const allSections = document.querySelectorAll(`#${tabName} .section`)
-    allSections.forEach((section) => {
-      if (section.id !== sectionId && !section.id.includes("mainOverviewSection")) {
-      section.classList.add("hidden")
-      }
-
-    })
-
-    // Show the requested section
-    const targetSection = document.getElementById(sectionId)
-    if (targetSection) {
-      targetSection.classList.remove("hidden")
-    }
-
-    // Show appropriate back button
-    const backBtnId =
-      tabName === "treinados"
-        ? "backToTrainedMainBtn"
-        : tabName === "desligamentos"
-          ? "backToDesligadosMainBtn"
-          : "backToMainBtn"
-    const backBtn = document.getElementById(backBtnId)
-    if (backBtn) {
-      backBtn.classList.remove("hidden")
-    }
-
-    // Update relevant data for the section
-    if (sectionId === "trainingStatusSection") {
-      this.renderTrainingStatusTable()
-    } else if (sectionId === "newTrainingSection") {
-      this.renderTable("training")
-    } else if (sectionId === "trackingSection") {
-      this.renderTable("tracking")
-    } else if (sectionId === "trainedTableSection") {
-      this.renderTable("trained")
-    } else if (sectionId === "desligadosTableSection") {
-      this.renderTable("desligamentos")
-    }
+  // Esconde a visão geral da aba ativa
+  const mainOverview = document.getElementById(
+    tabName === "treinados"
+      ? "trainedMainOverviewSection"
+      : tabName === "desligamentos"
+      ? "desligadosMainOverviewSection"
+      : "mainOverviewSection"
+  )
+  if (mainOverview) {
+    mainOverview.classList.add("hidden")
   }
+
+  // Esconde todas as outras sections da aba
+  const allSections = document.querySelectorAll(`#${tabName} .section`)
+  allSections.forEach((section) => {
+    if (section.id !== sectionId && !section.id.includes("mainOverviewSection")) {
+      section.classList.add("hidden")
+    }
+  })
+
+  // Mostra apenas a seção solicitada
+  const targetSection = document.getElementById(sectionId)
+  if (targetSection) {
+    targetSection.classList.remove("hidden")
+  }
+
+  // Mostra o botão "Voltar" correto
+  const backBtnId =
+    tabName === "treinados"
+      ? "backToTrainedMainBtn"
+      : tabName === "desligamentos"
+      ? "backToDesligadosMainBtn"
+      : "backToMainBtn"
+
+  const backBtn = document.getElementById(backBtnId)
+  if (backBtn) {
+    backBtn.classList.remove("hidden")
+  }
+
+  // 🔑 Renderizar tabelas específicas se necessário
+  if (sectionId === "trainedTableSection") {
+    this.renderTable("trained")
+  } else if (sectionId === "desligadosTableSection") {
+    this.renderTable("desligamentos")
+  } else if (sectionId === "trainingTableSection") {
+    this.renderTable("training")
+  }
+}
+
 
   showMainOverview(tabName = "treinamento") {
-    // Show main overview for the specific tab
-    const mainOverview = document.getElementById(
-      `${tabName === "treinados" ? "trainedMainOverviewSection" : tabName === "desligamentos" ? "desligadosMainOverviewSection" : "mainOverviewSection"}`,
-    )
-    if (mainOverview) {
-      mainOverview.classList.remove("hidden")
-    }
+  // Mostra a visão geral correta
+  const mainOverview = document.getElementById(
+    tabName === "treinados"
+      ? "trainedMainOverviewSection"
+      : tabName === "desligamentos"
+      ? "desligadosMainOverviewSection"
+      : "mainOverviewSection"
+  )
+  if (mainOverview) {
+    mainOverview.classList.remove("hidden")
+  }
 
-    // Hide all other sections in the tab
-    const allSections = document.querySelectorAll(`#${tabName} .section`)
-    allSections.forEach((section) => {
-      if (!section.id.includes("mainOverviewSection")) {
+  // Esconde as outras sections
+  const allSections = document.querySelectorAll(`#${tabName} .section`)
+  allSections.forEach((section) => {
+    if (!section.id.includes("mainOverviewSection")) {
       section.classList.add("hidden")
     }
+  })
 
-    })
+  // Esconde o botão voltar correto
+  const backBtnId =
+    tabName === "treinados"
+      ? "backToTrainedMainBtn"
+      : tabName === "desligamentos"
+      ? "backToDesligadosMainBtn"
+      : "backToMainBtn"
 
-    // Hide appropriate back button
-    const backBtnId =
-      tabName === "treinados"
-        ? "backToTrainedMainBtn"
-        : tabName === "desligamentos"
-          ? "backToDesligadosMainBtn"
-          : "backToMainBtn"
-    const backBtn = document.getElementById(backBtnId)
-    if (backBtn) {
-      backBtn.classList.add("hidden")
-    }
-
-    // Update charts and stats
-    this.updateCharts()
-    this.updateTrainingStats()
-    this.updateTrainedStats()
-    this.updateDesligadosStats()
-    this.updateCarteiraStats()
+  const backBtn = document.getElementById(backBtnId)
+  if (backBtn) {
+    backBtn.classList.add("hidden")
   }
+
+  // 🔑 Re-renderizar a tabela principal correspondente
+  if (tabName === "treinados") {
+    this.renderTable("trained")
+  } else if (tabName === "desligamentos") {
+    this.renderTable("desligamentos")
+  } else {
+    this.renderTable("training")
+  }
+
+  // Atualiza estatísticas e gráficos
+  this.updateCharts()
+  this.updateTrainingStats()
+  this.updateTrainedStats()
+  this.updateDesligadosStats()
+  this.updateCarteiraStats()
+}
 
   refreshPage() {
     location.reload()
