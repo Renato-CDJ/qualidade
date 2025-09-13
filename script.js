@@ -539,7 +539,7 @@ class TrainingSystem {
   // Esconde as outras sections
   const allSections = document.querySelectorAll(`#${tabName} .section`)
   allSections.forEach((section) => {
-    if (!section.id.includes("mainOverviewSection")) {
+    if (!section.id.includes("MainOverviewSection")) {
       section.classList.add("hidden")
     }
   })
@@ -557,25 +557,19 @@ class TrainingSystem {
     backBtn.classList.add("hidden")
   }
 
-  // 🔑 Re-renderizar tabela + atualizar estatísticas da aba correta
+  // 🔑 Forçar atualização da aba
   if (tabName === "treinados") {
     this.renderTable("trained")
     this.updateTrainedStats()
-    if (this.updateTrainedCarteiraStats) {
-      this.updateTrainedCarteiraStats()
-    }
+    this.updateTrainedCarteiraStats?.()
   } else if (tabName === "desligamentos") {
     this.renderTable("desligamentos")
     this.updateDesligadosStats()
-    if (this.updateDesligadosCarteiraStats) {
-      this.updateDesligadosCarteiraStats()
-    }
+    this.updateDesligadosCarteiraStats?.()
   } else {
     this.renderTable("training")
     this.updateTrainingStats()
-    if (this.updateTrainingCarteiraStats) {
-      this.updateTrainingCarteiraStats()
-    }
+    this.updateTrainingCarteiraStats?.()
   }
 
   // Atualiza os gráficos globais
