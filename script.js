@@ -557,21 +557,29 @@ class TrainingSystem {
     backBtn.classList.add("hidden")
   }
 
-  // 🔑 Re-renderizar a tabela principal correspondente
+  // 🔑 Re-renderizar tabela + atualizar estatísticas da aba correta
   if (tabName === "treinados") {
     this.renderTable("trained")
+    this.updateTrainedStats()
+    if (this.updateTrainedCarteiraStats) {
+      this.updateTrainedCarteiraStats()
+    }
   } else if (tabName === "desligamentos") {
     this.renderTable("desligamentos")
+    this.updateDesligadosStats()
+    if (this.updateDesligadosCarteiraStats) {
+      this.updateDesligadosCarteiraStats()
+    }
   } else {
     this.renderTable("training")
+    this.updateTrainingStats()
+    if (this.updateTrainingCarteiraStats) {
+      this.updateTrainingCarteiraStats()
+    }
   }
 
-  // Atualiza estatísticas e gráficos
+  // Atualiza os gráficos globais
   this.updateCharts()
-  this.updateTrainingStats()
-  this.updateTrainedStats()
-  this.updateDesligadosStats()
-  this.updateCarteiraStats()
 }
 
   refreshPage() {
@@ -579,22 +587,29 @@ class TrainingSystem {
   }
 
   refreshData() {
+  // Re-renderiza todas as tabelas
   this.renderAllTables()
-  this.updateCharts()
+
+  // Atualiza estatísticas específicas por aba
   this.updateTrainingStats()
+  if (this.updateTrainingCarteiraStats) {
+    this.updateTrainingCarteiraStats()
+  }
+
   this.updateTrainedStats()
+  if (this.updateTrainedCarteiraStats) {
+    this.updateTrainedCarteiraStats()
+  }
+
   this.updateDesligadosStats()
-  this.updateCarteiraStats()
+  if (this.updateDesligadosCarteiraStats) {
+    this.updateDesligadosCarteiraStats()
+  }
+
+  // Atualiza gráficos globais
+  this.updateCharts()
 }
 
-
-  scrollToTrainingStatus() {
-    this.showOnlySection("trainingStatusSection")
-  }
-
-  toggleSection(sectionId) {
-    this.showOnlySection(sectionId)
-  }
 
   // Gerenciamento de Dados
   addTraining(e) {
