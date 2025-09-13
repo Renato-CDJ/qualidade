@@ -556,11 +556,14 @@ class TrainingSystem {
   }
 
   refreshData() {
-    this.renderAllTables()
-    this.updateCharts()
-    this.updateStats()
-    this.updateCarteiraStats()
-  }
+  this.renderAllTables()
+  this.updateCharts()
+  this.updateTrainingStats()
+  this.updateTrainedStats()
+  this.updateDesligadosStats()
+  this.updateCarteiraStats()
+}
+
 
   scrollToTrainingStatus() {
     this.showOnlySection("trainingStatusSection")
