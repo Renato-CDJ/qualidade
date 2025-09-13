@@ -48,7 +48,8 @@ class TrainingSystem {
 
     // Tabs
     document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => this.switchTab(e.target.dataset.tab))
+      btn.addEventListener("click", (e) => this.switchTab(e.currentTarget.dataset.tab))
+
     })
 
     // Training section buttons
