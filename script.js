@@ -475,9 +475,10 @@ class TrainingSystem {
     // Hide all other sections in the tab
     const allSections = document.querySelectorAll(`#${tabName} .section`)
     allSections.forEach((section) => {
-      if (section.id !== sectionId && !section.id.includes("MainOverviewSection")) {
-        section.classList.add("hidden")
+      if (section.id !== sectionId && !section.id.includes("mainOverviewSection")) {
+      section.classList.add("hidden")
       }
+
     })
 
     // Show the requested section
@@ -524,9 +525,10 @@ class TrainingSystem {
     // Hide all other sections in the tab
     const allSections = document.querySelectorAll(`#${tabName} .section`)
     allSections.forEach((section) => {
-      if (!section.id.includes("MainOverviewSection")) {
-        section.classList.add("hidden")
-      }
+      if (!section.id.includes("mainOverviewSection")) {
+      section.classList.add("hidden")
+    }
+
     })
 
     // Hide appropriate back button
