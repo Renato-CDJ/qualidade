@@ -536,10 +536,12 @@ class TrainingSystem {
     mainOverview.classList.remove("hidden")
   }
 
-  // Esconde as outras sections
+  // Esconde as outras sections (corrigido para minúsculo)
   const allSections = document.querySelectorAll(`#${tabName} .section`)
   allSections.forEach((section) => {
-    if (!section.id.includes("MainOverviewSection")) {
+    if (!section.id.includes("mainOverviewSection") &&
+        !section.id.includes("trainedMainOverviewSection") &&
+        !section.id.includes("desligadosMainOverviewSection")) {
       section.classList.add("hidden")
     }
   })
@@ -575,6 +577,7 @@ class TrainingSystem {
   // Atualiza os gráficos globais
   this.updateCharts()
 }
+
 
   refreshPage() {
     location.reload()
