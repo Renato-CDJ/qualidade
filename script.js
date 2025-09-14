@@ -1,6 +1,12 @@
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
 import { auth } from "./firebase.js"
 
+import { db } from "./firebase.js"
+import { 
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+
+
 // Sistema de Gerenciamento de Treinamentos
 class TrainingSystem {
   constructor() {
@@ -617,101 +623,67 @@ class TrainingSystem {
 
 
   // Gerenciamento de Dados
-  addTraining(e) {
-    e.preventDefault()
-    if (!this.isAdmin) return
+async addTraining(e) {
+  e.preventDefault();
+  if (!this.isAdmin) return;
 
-    const formData = new FormData(e.target)
-    const training = {
-      id: Date.now(),
-      colaborador: document.getElementById("colaboradorName").value,
-      turno: document.getElementById("turnoSelect").value,
-      carteira: document.getElementById("carteiraSelect").value,
-      dataAdicionado: new Date().toLocaleDateString("pt-BR"),
-    }
+  const colaborador = document.getElementById("colaboradorName").value;
+  const turno = document.getElementById("turnoSelect").value;
+  const carteira = document.getElementById("carteiraSelect").value;
+  const dataAdicionado = new Date().toLocaleDateString("pt-BR");
 
-    this.data.training.push(training)
+  // Objeto de treinamento
+  const training = { colaborador, turno, carteira, dataAdicionado };
 
-    const existingStatus = this.data.trainingStatus.find((item) => item.colaborador === training.colaborador)
-    if (!existingStatus) {
-      this.data.trainingStatus.push({
-        id: Date.now() + 1,
-        colaborador: training.colaborador,
-        turno: training.turno,
-        carteira: training.carteira,
-        dataAdicionado: training.dataAdicionado,
-        status: "Pendente",
-      })
-      this.saveData("trainingStatus")
-    }
+  try {
+    // Salvar em "training"
+    await addDoc(collection(db, "training"), training);
 
-    this.saveData("training")
-    this.renderTable("training")
-    this.renderTrainingStatusTable()
-    this.updateCharts()
-    this.updateTrainingStats()
-    this.updateTrainedStats()
-    this.updateDesligadosStats()
-    e.target.reset()
+    // Também salvar em "trainingStatus"
+    await addDoc(collection(db, "trainingStatus"), {
+      colaborador,
+      turno,
+      carteira,
+      dataAdicionado,
+      status: "Pendente"
+    });
 
-    this.showNotification("Treinamento adicionado com sucesso!", "success")
+    this.showNotification("Treinamento salvo com sucesso!", "success");
+
+    this.loadData(); // recarrega dados
+    e.target.reset();
+  } catch (err) {
+    console.error("Erro ao salvar no Firestore:", err);
+    this.showNotification("Erro ao salvar no Firestore", "error");
   }
+}
 
-  addTracking(e) {
-    e.preventDefault()
-    if (!this.isAdmin) return
+async addTracking(e) {
+  e.preventDefault();
+  if (!this.isAdmin) return;
 
-    const tracking = {
-      id: Date.now(),
-      colaborador: document.getElementById("trackingColaborador").value,
-      cpf: document.getElementById("trackingCPF").value,
-      turno: document.getElementById("trackingTurno").value,
-      carteira: document.getElementById("trackingCarteira").value,
-      primeiroDia: document.getElementById("tracking1Dia").value,
-      segundoDia: document.getElementById("tracking2Dia").value,
-      status: document.getElementById("trackingStatus").value,
-      dataAdicionado: new Date().toLocaleDateString("pt-BR"),
-    }
+  const tracking = {
+    colaborador: document.getElementById("trackingColaborador").value,
+    cpf: document.getElementById("trackingCPF").value,
+    turno: document.getElementById("trackingTurno").value,
+    carteira: document.getElementById("trackingCarteira").value,
+    primeiroDia: document.getElementById("tracking1Dia").value,
+    segundoDia: document.getElementById("tracking2Dia").value,
+    status: document.getElementById("trackingStatus").value,
+    dataAdicionado: new Date().toLocaleDateString("pt-BR"),
+  };
 
-    this.data.tracking.push(tracking)
-    this.saveData("tracking")
-    this.renderTable("tracking")
-    this.updateCharts()
-    e.target.reset()
+  try {
+    await addDoc(collection(db, "tracking"), tracking);
+    this.showNotification("Acompanhamento salvo com sucesso!", "success");
 
-    this.showNotification("Acompanhamento adicionado com sucesso!", "success")
+    this.loadData();
+    e.target.reset();
+  } catch (err) {
+    console.error("Erro ao salvar no Firestore:", err);
+    this.showNotification("Erro ao salvar no Firestore", "error");
   }
-
-  addTrained(e) {
-    e.preventDefault()
-    if (!this.isAdmin) return
-
-    const admissaoDate = new Date(document.getElementById("trainedAdmissao").value)
-    const hoje = new Date()
-    const tempoEmpresa = Math.floor((hoje - admissaoDate) / (1000 * 60 * 60 * 24))
-
-    const trained = {
-      id: Date.now(),
-      nome: document.getElementById("trainedNome").value,
-      supervisor: document.getElementById("trainedSupervisor").value,
-      coordenador: document.getElementById("trainedCoordenador").value,
-      turno: document.getElementById("trainedTurno").value,
-      admissao: document.getElementById("trainedAdmissao").value,
-      tempoEmpresa: `${tempoEmpresa} dias`,
-      dataTreinamento: document.getElementById("trainedDataTreinamento").value,
-      campanhas: document.getElementById("trainedCampanhas").value,
-      dataAdicionado: new Date().toLocaleDateString("pt-BR"),
-    }
-
-    this.data.trained.push(trained)
-    this.saveData("trained")
-    this.renderTable("trained")
-    this.updateCharts()
-    this.updateTrainedStats()
-    e.target.reset()
-
-    this.showNotification("Operador treinado adicionado com sucesso!", "success")
-  }
+}
 
   addDesligamento(e) {
     e.preventDefault()
@@ -1445,17 +1417,19 @@ class TrainingSystem {
     this.showEditModal(type, item)
   }
 
-  deleteItem(type, id) {
-    if (!this.isAdmin) return
-
-    if (confirm("Tem certeza que deseja excluir este item?")) {
-      this.data[type] = this.data[type].filter((item) => item.id !== id)
-      this.saveData(type)
-      this.renderTable(type)
-      this.updateCharts()
-      this.showNotification("Item excluído com sucesso!", "success")
-    }
+  // Deleta documento do Firestore
+async deleteItem(type, id) {
+  try {
+    await deleteDoc(doc(db, type, id))
+    this.showNotification("Item removido com sucesso!", "success")
+    await this.loadData(type)
+    this.renderTable(type)
+  } catch (error) {
+    console.error("Erro ao deletar:", error)
+    this.showNotification("Erro ao deletar no Firestore", "error")
   }
+}
+
 
   showEditModal(type, item) {
     const modal = document.getElementById("editModal")
@@ -1748,10 +1722,23 @@ class TrainingSystem {
     this.saveAllData()
   }
 
-  // Persistência de Dados
-  saveData(type) {
-    localStorage.setItem(type, JSON.stringify(this.data[type]))
+  // Salva ou atualiza no Firestore
+async saveData(type, item, id = null) {
+  try {
+    if (id) {
+      // Atualizar documento existente
+      const ref = doc(db, type, id)
+      await updateDoc(ref, item)
+    } else {
+      // Criar novo documento
+      await addDoc(collection(db, type), item)
+    }
+    this.showNotification("Dados salvos com sucesso!", "success")
+  } catch (error) {
+    console.error("Erro ao salvar no Firestore:", error)
+    this.showNotification("Erro ao salvar no Firestore", "error")
   }
+}
 
   saveAllData() {
     Object.keys(this.data).forEach((type) => {
@@ -2069,9 +2056,33 @@ class TrainingSystem {
       .join("")
   }
 
-  loadData() {
-    this.loadSampleData()
+  // Carrega dados do Firestore
+async loadData() {
+  try {
+    // Treinamentos
+    const trainingSnapshot = await getDocs(collection(db, "training"));
+    this.data.training = trainingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Tracking
+    const trackingSnapshot = await getDocs(collection(db, "tracking"));
+    this.data.tracking = trackingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Treinados
+    const trainedSnapshot = await getDocs(collection(db, "trained"));
+    this.data.trained = trainedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Desligamentos
+    const desligamentosSnapshot = await getDocs(collection(db, "desligamentos"));
+    this.data.desligamentos = desligamentosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Status dos Treinamentos
+    const statusSnapshot = await getDocs(collection(db, "trainingStatus"));
+    this.data.trainingStatus = statusSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (err) {
+    console.error("Erro ao carregar dados do Firestore:", err);
   }
+}
+
 
   updateTrainingStats() {
     const totalTrainings = this.data.trainingStatus.length
