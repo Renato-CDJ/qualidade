@@ -1,3 +1,6 @@
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
+import { auth } from "./firebase.js"
+
 // Sistema de Gerenciamento de Treinamentos
 class TrainingSystem {
   constructor() {
@@ -395,30 +398,33 @@ class TrainingSystem {
   }
 
   login(e) {
-    e.preventDefault()
-    const email = document.getElementById("loginEmail").value
-    const password = document.getElementById("loginPassword").value
+  e.preventDefault()
+  const email = document.getElementById("loginEmail").value.trim()
+  const password = document.getElementById("loginPassword").value.trim()
 
-    // Validação simples de login
-    if (email === "qualidade@grupo.com") {
-      this.currentUser = "Administrador"
-      this.isAdmin = true
-    } else if (email && password) {
-      this.currentUser = email.split("@")[0]
-      this.isAdmin = false
-    } else {
-      alert("Credenciais inválidas!")
-      return
-    }
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user
 
-    document.getElementById("loginScreen").classList.add("hidden")
-    document.getElementById("mainSystem").classList.remove("hidden")
-    document.getElementById("userWelcome").textContent = `Bem-vindo, ${this.currentUser}`
+      // Define usuário logado
+      this.currentUser = user.email
+      this.isAdmin = (user.email === "qualidade@grupo.com")
 
-    this.updateUIForUserType()
-    this.renderAllTables()
-    this.updateCharts()
-  }
+      // Exibe sistema e esconde login
+      document.getElementById("loginScreen").classList.add("hidden")
+      document.getElementById("mainSystem").classList.remove("hidden")
+      document.getElementById("userWelcome").textContent = `Bem-vindo, ${this.currentUser}`
+
+      // Ajusta a interface conforme o tipo de usuário
+      this.updateUIForUserType()
+      this.renderAllTables()
+      this.updateCharts()
+    })
+    .catch((error) => {
+      alert("Erro no login: " + error.message)
+    })
+}
+
 
   logout() {
     this.currentUser = null
@@ -429,12 +435,14 @@ class TrainingSystem {
   }
 
   updateUIForUserType() {
-    if (!this.isAdmin) {
-      document.body.classList.add("user-mode")
-    } else {
-      document.body.classList.remove("user-mode")
-    }
+  const adminElements = document.querySelectorAll(".admin-only")
+  if (this.isAdmin) {
+    adminElements.forEach(el => el.classList.remove("hidden"))
+  } else {
+    adminElements.forEach(el => el.classList.add("hidden"))
   }
+}
+
 
   toggleTheme() {
     const currentTheme = document.documentElement.getAttribute("data-theme")
