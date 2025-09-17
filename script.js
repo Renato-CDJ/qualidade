@@ -777,24 +777,25 @@ async addDesligamento(e) {
     const row = document.createElement("tr")
 
     switch (type) {
-      case "training":
-        row.innerHTML = `
-                    <td>${item.colaborador}</td>
-                    <td>${item.turno}</td>
-                    <td>${item.carteira}</td>
-                    <td class="admin-only">
-                        <div class="action-buttons-table">
-                            <div class="action-buttons-table">
-                            <button class="btn btn-sm btn-success" onclick="system.editItem('trained', ${item.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', ${item.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `
-        break
+      case "tracking":
+  row.innerHTML = `
+    <td>${item.colaborador}</td>
+    <td>${item.cpf}</td>
+    <td>${item.turno}</td>
+    <td>${item.carteira}</td>
+    <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+    <td class="admin-only">
+        <div class="action-buttons-table">
+            <button class="btn btn-sm btn-success" onclick="system.editItem('tracking', '${item.id}')">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', '${item.id}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </td>
+  `
+  break
       case "tracking":
         row.innerHTML = `
                     <td>${item.colaborador}</td>
