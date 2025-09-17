@@ -3,7 +3,7 @@ import { auth } from "./firebase.js"
 
 import { db } from "./firebase.js"
 import { 
-  collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot 
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, where 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
 
@@ -32,7 +32,7 @@ class TrainingSystem {
 
   init() {
     this.loadData()
-    this.loadCarteiraSettings()
+    this.loadCarteiras()
     this.renderTable("training")
     this.renderTable("tracking")
     this.renderTable("trained")
@@ -297,66 +297,64 @@ class TrainingSystem {
     this.saveCarteiraSettings()
   }
 
-  addCarteira(type) {
-    const inputId =
-      type === "carteira"
-        ? "newCarteiraName"
-        : type === "trained"
-          ? "newTrainedCarteiraName"
-          : "newDesligadosCarteiraName"
+  async addCarteira(type) {
+  const inputId =
+    type === "carteira"
+      ? "newCarteiraName"
+      : type === "trained"
+        ? "newTrainedCarteiraName"
+        : "newDesligadosCarteiraName"
 
-    const input = document.getElementById(inputId)
-    const carteiraName = input.value.trim()
+  const input = document.getElementById(inputId)
+  const carteiraName = input.value.trim()
 
-    if (!carteiraName) {
-      this.showNotification("Por favor, insira um nome para a carteira", "error")
-      return
-    }
+  if (!carteiraName) {
+    this.showNotification("Por favor, insira um nome para a carteira", "error")
+    return
+  }
 
-    if (this.carteiras.includes(carteiraName)) {
-      this.showNotification("Esta carteira já existe", "error")
-      return
-    }
+  if (this.carteiras.includes(carteiraName)) {
+    this.showNotification("Esta carteira já existe", "error")
+    return
+  }
 
-    this.carteiras.push(carteiraName)
-    input.value = ""
+  try {
+    // 🔥 Salva no Firestore
+    await addDoc(collection(db, "carteiras"), { nome: carteiraName })
 
-    // Update all select elements with new carteira
-    this.updateCarteiraSelects()
-
-    // Update visibility list
-    this.updateCarteiraVisibilityList(type)
-
-    // Update stats
-    this.updateCarteiraStats()
-
-    this.saveCarteiraSettings()
     this.showNotification(`Carteira "${carteiraName}" adicionada com sucesso!`, "success")
+    input.value = ""
+  } catch (err) {
+    console.error("Erro ao salvar carteira:", err)
+    this.showNotification("Erro ao salvar carteira", "error")
+  }
+}
+
+  async deleteCarteira(carteira, type) {
+  if (this.carteiras.length <= 1) {
+    this.showNotification("Deve haver pelo menos uma carteira", "error")
+    return
   }
 
-  deleteCarteira(carteira, type) {
-    if (this.carteiras.length <= 1) {
-      this.showNotification("Deve haver pelo menos uma carteira", "error")
-      return
-    }
-
-    if (confirm(`Tem certeza que deseja excluir a carteira "${carteira}"?`)) {
-      this.carteiras = this.carteiras.filter((c) => c !== carteira)
-      this.hiddenCarteiras.delete(carteira)
-
-      // Update all select elements
-      this.updateCarteiraSelects()
-
-      // Update visibility list
-      this.updateCarteiraVisibilityList(type)
-
-      // Update stats
-      this.updateCarteiraStats()
-
-      this.saveCarteiraSettings()
-      this.showNotification(`Carteira "${carteira}" excluída com sucesso!`, "success")
-    }
+  if (!confirm(`Tem certeza que deseja excluir a carteira "${carteira}"?`)) {
+    return
   }
+
+  try {
+    // 🔥 Localiza no Firestore e remove
+    const q = query(collection(db, "carteiras"), where("nome", "==", carteira))
+    const snapshot = await getDocs(q)
+
+    for (const docSnap of snapshot.docs) {
+      await deleteDoc(doc(db, "carteiras", docSnap.id))
+    }
+
+    this.showNotification(`Carteira "${carteira}" excluída com sucesso!`, "success")
+  } catch (err) {
+    console.error("Erro ao excluir carteira:", err)
+    this.showNotification("Erro ao excluir carteira", "error")
+  }
+}
 
   updateCarteiraSelects() {
     const selects = [
@@ -392,20 +390,23 @@ class TrainingSystem {
     localStorage.setItem("hiddenCarteiras", JSON.stringify([...this.hiddenCarteiras]))
   }
 
-  loadCarteiraSettings() {
-    const savedCarteiras = localStorage.getItem("carteiras")
+  loadCarteiras() {
+  onSnapshot(collection(db, "carteiras"), (snapshot) => {
+    // pega todas as carteiras do banco
+    this.carteiras = snapshot.docs.map(doc => doc.data().nome)
+
+    // mantém carteiras ocultas do usuário atual (localStorage)
     const savedHiddenCarteiras = localStorage.getItem("hiddenCarteiras")
-
-    if (savedCarteiras) {
-      this.carteiras = JSON.parse(savedCarteiras)
-    }
-
     if (savedHiddenCarteiras) {
       this.hiddenCarteiras = new Set(JSON.parse(savedHiddenCarteiras))
     }
 
+    // atualiza selects e estatísticas
     this.updateCarteiraSelects()
-  }
+    this.updateCarteiraStats()
+  })
+}
+
 
   login(e) {
   e.preventDefault()
