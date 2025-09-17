@@ -540,7 +540,6 @@ class TrainingSystem {
   }
 }
 
-
   showMainOverview(tabName = "treinamento") {
   // Mostra a visão geral correta
   const mainOverview = document.getElementById(
@@ -625,7 +624,6 @@ class TrainingSystem {
   this.updateCharts()
 }
 
-
   // Gerenciamento de Dados
 async addTraining(e) {
   e.preventDefault();
@@ -659,7 +657,6 @@ async addTraining(e) {
     this.showNotification("Erro ao salvar no Firestore", "error");
   }
 }
-
 
 async addTracking(e) {
   e.preventDefault();
@@ -740,7 +737,6 @@ async addDesligamento(e) {
     this.showNotification("Erro ao salvar no Firestore", "error");
   }
 }
-
 
   // Renderização de Tabelas
   renderTable(type) {
@@ -1865,7 +1861,7 @@ async saveData(type, item, id = null) {
       <td><span class="status-badge ${statusClass}">${item.status}</span></td>
       <td class="admin-only">
         <div class="action-buttons-table">
-          <select onchange="system.updateTrainingStatus(${item.id}, this.value)" class="status-select">
+          <select onchange="system.updateTrainingStatus('${item.id}', this.value)" class="status-select">
             <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
             <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Treinamento Aplicado</option>
             <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
@@ -1877,21 +1873,18 @@ async saveData(type, item, id = null) {
   }
 
   // Adicionando novo método para atualizar status do treinamento
-  updateTrainingStatus(id, newStatus) {
-    if (!this.isAdmin) return
+  async updateTrainingStatus(id, newStatus) {
+  try {
+    const ref = doc(db, "trainingStatus", id);
+    await updateDoc(ref, { status: newStatus });
 
-    const item = this.data.trainingStatus.find((item) => item.id === id)
-    if (item) {
-      item.status = newStatus
-      this.saveData("trainingStatus")
-      this.renderTrainingStatusTable()
-      this.updateCharts()
-      this.updateTrainingStats()
-      this.updateTrainedStats()
-      this.updateDesligadosStats()
-      this.showNotification("Status atualizado com sucesso!", "success")
-    }
+    this.showNotification("Status atualizado com sucesso!", "success");
+    this.loadData();
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
+    this.showNotification("Erro ao atualizar status", "error");
   }
+}
 
   updateCarteiraStats() {
     this.updateTrainingCarteiraStats()
@@ -2113,7 +2106,6 @@ async loadData() {
     console.error("Erro ao carregar dados do Firestore:", err)
   }
 }
-
 
 
   updateTrainingStats() {
@@ -2627,3 +2619,18 @@ async loadData() {
 const system = new TrainingSystem()
 
 window.system = system
+
+// Atualizar status de um treinamento
+window.trainingStatus = async function (docId, newStatus) {
+  try {
+    const docRef = doc(db, "trainingStatus", docId);
+    await updateDoc(docRef, { status: newStatus });
+
+    system.showNotification("Status atualizado com sucesso!", "success");
+    system.loadData();
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
+    system.showNotification("Erro ao atualizar status", "error");
+  }
+};
+
