@@ -446,14 +446,13 @@ class TrainingSystem {
   }
 
   updateUIForUserType() {
-  const adminElements = document.querySelectorAll(".admin-only")
+  const body = document.body;
   if (this.isAdmin) {
-    adminElements.forEach(el => el.classList.remove("hidden"))
+    body.classList.remove("user-mode");  // mostra botões
   } else {
-    adminElements.forEach(el => el.classList.add("hidden"))
+    body.classList.add("user-mode");     // esconde botões
   }
 }
-
 
   toggleTheme() {
     const currentTheme = document.documentElement.getAttribute("data-theme")
