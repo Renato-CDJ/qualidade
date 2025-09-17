@@ -741,6 +741,21 @@ async addDesligamento(e) {
   }
 }
 
+async deleteItem(type, id) {
+  if (!this.isAdmin) return;
+  if (!confirm("Tem certeza que deseja excluir este item?")) return;
+
+  try {
+    await deleteDoc(doc(db, type, id));
+    this.showNotification("Item excluído com sucesso!", "success");
+    this.loadData(); // recarrega os dados do Firestore
+  } catch (err) {
+    console.error("Erro ao excluir item:", err);
+    this.showNotification("Erro ao excluir item", "error");
+  }
+}
+
+
   // Renderização de Tabelas
   renderTable(type) {
     const tableId = this.getTableId(type)
