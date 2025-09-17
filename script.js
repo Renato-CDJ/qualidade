@@ -3,7 +3,7 @@ import { auth } from "./firebase.js"
 
 import { db } from "./firebase.js"
 import { 
-  collection, addDoc, getDocs, updateDoc, deleteDoc, doc 
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
 
@@ -667,8 +667,6 @@ async addTracking(e) {
     cpf: document.getElementById("trackingCPF").value,
     turno: document.getElementById("trackingTurno").value,
     carteira: document.getElementById("trackingCarteira").value,
-    primeiroDia: document.getElementById("tracking1Dia").value,
-    segundoDia: document.getElementById("tracking2Dia").value,
     status: document.getElementById("trackingStatus").value,
     dataAdicionado: new Date().toLocaleDateString("pt-BR"),
   };
@@ -2076,37 +2074,46 @@ async saveData(type, item, id = null) {
   }
 
   // Carrega dados do Firestore
-async loadData() {
-  try {
-    // Buscar da coleção training
-    const trainingSnap = await getDocs(collection(db, "training"))
-    this.data.training = trainingSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Buscar da coleção tracking
-    const trackingSnap = await getDocs(collection(db, "tracking"))
-    this.data.tracking = trackingSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Buscar da coleção trained
-    const trainedSnap = await getDocs(collection(db, "trained"))
-    this.data.trained = trainedSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Buscar da coleção desligamentos
-    const desligSnap = await getDocs(collection(db, "desligamentos"))
-    this.data.desligamentos = desligSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Buscar da coleção trainingStatus
-    const statusSnap = await getDocs(collection(db, "trainingStatus"))
-    this.data.trainingStatus = statusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Atualizar tabelas e gráficos
-    this.renderAllTables()
+loadData() {
+  // Training
+  onSnapshot(collection(db, "training"), (snapshot) => {
+    this.data.training = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.renderTable("training")
+    this.updateTrainingStats()
     this.updateCharts()
+  })
 
-  } catch (err) {
-    console.error("Erro ao carregar dados do Firestore:", err)
-  }
+  // Tracking
+  onSnapshot(collection(db, "tracking"), (snapshot) => {
+    this.data.tracking = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.renderTable("tracking")
+    this.updateCharts()
+  })
+
+  // Trained
+  onSnapshot(collection(db, "trained"), (snapshot) => {
+    this.data.trained = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.renderTable("trained")
+    this.updateTrainedStats()
+    this.updateCharts()
+  })
+
+  // Desligamentos
+  onSnapshot(collection(db, "desligamentos"), (snapshot) => {
+    this.data.desligamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.renderTable("desligamentos")
+    this.updateDesligadosStats()
+    this.updateCharts()
+  })
+
+  // TrainingStatus
+  onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
+    this.data.trainingStatus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.renderTrainingStatusTable()
+    this.updateTrainingStats()
+    this.updateCharts()
+  })
 }
-
 
   updateTrainingStats() {
     const totalTrainings = this.data.trainingStatus.length
