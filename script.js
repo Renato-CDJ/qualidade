@@ -784,10 +784,11 @@ async addDesligamento(e) {
                     <td>${item.carteira}</td>
                     <td class="admin-only">
                         <div class="action-buttons-table">
-                            <button class="btn btn-sm btn-success" onclick="system.editItem('training', ${item.id})">
+                            <div class="action-buttons-table">
+                            <button class="btn btn-sm btn-success" onclick="system.editItem('trained', ${item.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('training', ${item.id})">
+                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', ${item.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -804,10 +805,11 @@ async addDesligamento(e) {
                     <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
                     <td class="admin-only">
                         <div class="action-buttons-table">
-                            <button class="btn btn-sm btn-success" onclick="system.editItem('tracking', ${item.id})">
+                            <div class="action-buttons-table">
+                            <button class="btn btn-sm btn-success" onclick="system.editItem('trained', ${item.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', ${item.id})">
+                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', ${item.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -849,10 +851,11 @@ async addDesligamento(e) {
                     <td>${item.agencia}</td>
                     <td class="admin-only">
                         <div class="action-buttons-table">
-                            <button class="btn btn-sm btn-success" onclick="system.editItem('desligamentos', ${item.id})">
+                            <div class="action-buttons-table">
+                            <button class="btn btn-sm btn-success" onclick="system.editItem('trained', ${item.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('desligamentos', ${item.id})">
+                            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', ${item.id})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
