@@ -638,18 +638,21 @@ async addTraining(e) {
   const training = { colaborador, turno, carteira, dataAdicionado };
 
   try {
-    // Salvar em "training"
+    // 1) Salva em "training"
     await addDoc(collection(db, "training"), training);
 
-    // Também salvar em "trainingStatus"
+    // 2) Salva em "tracking"
     await addDoc(collection(db, "tracking"), {
-  colaborador,
-  turno,
-  carteira,
-  dataAdicionado,
-  status: "Pendente"
-});
+      ...training,
+      cpf: "",               // se não tiver no momento, deixa vazio
+      status: "Ativo"        // ou "Pendente", dependendo da regra que você quiser
+    });
 
+    // 3) Salva em "trainingStatus"
+    await addDoc(collection(db, "trainingStatus"), {
+      ...training,
+      status: "Pendente"
+    });
 
     this.showNotification("Treinamento salvo com sucesso!", "success");
     this.loadData(); // recarrega direto do Firestore
@@ -659,6 +662,7 @@ async addTraining(e) {
     this.showNotification("Erro ao salvar no Firestore", "error");
   }
 }
+
 
 async addTracking(e) {
   e.preventDefault();
