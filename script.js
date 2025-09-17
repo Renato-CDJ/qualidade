@@ -1457,40 +1457,55 @@ async addDesligamento(e) {
 
   // Edição e Exclusão
   editItem(type, id) {
-    if (!this.isAdmin) return
+  const item = this.data[type].find((d) => d.id === id);
+  if (!item) return;
 
-    const item = this.data[type].find((item) => item.id === id)
-    if (!item) return
+  const modal = document.getElementById("editModal");
+  const modalBody = document.getElementById("modalBody");
+  modalBody.innerHTML = "";
 
-    this.showEditModal(type, item)
+  // Cria campos para cada propriedade, exceto "id"
+  for (const key in item) {
+    if (key === "id") continue;
+    modalBody.innerHTML += `
+      <div class="form-row">
+        <label for="edit-${key}">${key}</label>
+        <input type="text" id="edit-${key}" value="${item[key] || ""}" />
+      </div>
+    `;
   }
 
-  // Deleta documento do Firestore
-async deleteItem(type, id) {
-  try {
-    await deleteDoc(doc(db, type, id))
-    this.showNotification("Item removido com sucesso!", "success")
-    await this.loadData(type)
-    this.renderTable(type)
-  } catch (error) {
-    console.error("Erro ao deletar:", error)
-    this.showNotification("Erro ao deletar no Firestore", "error")
-  }
+  modal.classList.remove("hidden");
+
+  // Cancelar
+  document.getElementById("cancelEdit").onclick = () => {
+    modal.classList.add("hidden");
+  };
+  document.getElementById("closeModal").onclick = () => {
+    modal.classList.add("hidden");
+  };
+
+  // Salvar alterações
+  document.getElementById("saveEdit").onclick = async () => {
+    const updatedData = {};
+    for (const key in item) {
+      if (key === "id") continue;
+      const input = document.getElementById(`edit-${key}`);
+      if (input) updatedData[key] = input.value;
+    }
+
+    try {
+      await updateDoc(doc(db, type, id), updatedData);
+      this.showNotification("Registro atualizado com sucesso!", "success");
+      modal.classList.add("hidden");
+      this.loadData(); // recarrega tabela
+    } catch (err) {
+      console.error("Erro ao atualizar:", err);
+      this.showNotification("Erro ao salvar alterações", "error");
+    }
+  };
 }
 
-
-  showEditModal(type, item) {
-    const modal = document.getElementById("editModal")
-    const modalTitle = document.getElementById("modalTitle")
-    const modalBody = document.getElementById("modalBody")
-
-    modalTitle.textContent = `Editar ${this.getTypeLabel(type)}`
-    modalBody.innerHTML = this.createEditForm(type, item)
-
-    modal.classList.remove("hidden")
-    modal.dataset.type = type
-    modal.dataset.id = item.id
-  }
 
   createEditForm(type, item) {
     switch (type) {
