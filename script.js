@@ -64,6 +64,20 @@ class TrainingSystem {
       btn.addEventListener("click", (e) => this.switchTab(e.currentTarget.dataset.tab))
 
     })
+
+    // Clique nos cards de estatísticas
+document.querySelectorAll(".stat-card.clickable").forEach(card => {
+  card.addEventListener("click", () => {
+    const status = card.dataset.status
+    this.showOnlySection("trainingStatusSection", "treinamento")
+
+    // aplica filtro direto no select
+    const filterSelect = document.getElementById("filterTrainingStatusTable")
+    filterSelect.value = status
+    this.filterTrainingStatusTable()
+  })
+})
+
     
     // Training section buttons
     document

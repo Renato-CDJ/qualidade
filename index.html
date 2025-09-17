@@ -141,35 +141,43 @@
                     <div class="training-stats-container">
                         <h4 style="margin-bottom: 20px; color: var(--text-primary);">Estatísticas</h4>
                         <div class="training-stats">
-                            <div class="stat-card">
-                                <i class="fas fa-users"></i>
-                                <div class="stat-info">
-                                    <span class="stat-number" id="totalTrainings">0</span>
-                                    <span class="stat-label">Total de Treinamentos</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-check-circle"></i>
-                                <div class="stat-info">
-                                    <span class="stat-number" id="appliedTrainings">0</span>
-                                    <span class="stat-label">Aplicados</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-clock"></i>
-                                <div class="stat-info">
-                                    <span class="stat-number" id="pendingTrainings">0</span>
-                                    <span class="stat-label">Pendentes</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-times-circle"></i>
-                                <div class="stat-info">
-                                    <span class="stat-number" id="notAppliedTrainings">0</span>
-                                    <span class="stat-label">Não Aplicados</span>
-                                </div>
-                            </div>
-                        </div>
+    <!-- NÃO precisa clicar -->
+    <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div class="stat-info">
+            <span class="stat-number" id="totalTrainings">0</span>
+            <span class="stat-label">Total de Treinamentos</span>
+        </div>
+    </div>
+
+    <!-- Aplicados -->
+    <div class="stat-card clickable" data-status="Aplicado">
+        <i class="fas fa-check-circle"></i>
+        <div class="stat-info">
+            <span class="stat-number" id="appliedTrainings">0</span>
+            <span class="stat-label">Aplicados</span>
+        </div>
+    </div>
+
+    <!-- Pendentes -->
+    <div class="stat-card clickable" data-status="Pendente">
+        <i class="fas fa-clock"></i>
+        <div class="stat-info">
+            <span class="stat-number" id="pendingTrainings">0</span>
+            <span class="stat-label">Pendentes</span>
+        </div>
+    </div>
+
+    <!-- Não Aplicados -->
+    <div class="stat-card clickable" data-status="Não Aplicado">
+        <i class="fas fa-times-circle"></i>
+        <div class="stat-info">
+            <span class="stat-number" id="notAppliedTrainings">0</span>
+            <span class="stat-label">Não Aplicados</span>
+        </div>
+    </div>
+</div>
+
 
                         <h4 style="margin: 30px 0 20px 0; color: var(--text-primary);">Estatísticas por Carteira</h4>
                         <div class="section-controls">
