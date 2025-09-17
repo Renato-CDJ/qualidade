@@ -642,13 +642,14 @@ async addTraining(e) {
     await addDoc(collection(db, "training"), training);
 
     // Também salvar em "trainingStatus"
-    await addDoc(collection(db, "trainingStatus"), {
-      colaborador,
-      turno,
-      carteira,
-      dataAdicionado,
-      status: "Pendente"
-    });
+    await addDoc(collection(db, "tracking"), {
+  colaborador,
+  turno,
+  carteira,
+  dataAdicionado,
+  status: "Pendente"
+});
+
 
     this.showNotification("Treinamento salvo com sucesso!", "success");
     this.loadData(); // recarrega direto do Firestore
