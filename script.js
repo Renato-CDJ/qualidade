@@ -1455,25 +1455,74 @@ async addDesligamento(e) {
     })
   }
 
-  // Edição e Exclusão
-  editItem(type, id) {
+ // Edição de registros
+editItem(type, id) {
   const item = this.data[type].find((d) => d.id === id);
   if (!item) return;
 
   const modal = document.getElementById("editModal");
+  modal.dataset.type = type;   // ✅ salva no dataset
+  modal.dataset.id = id;       // ✅ salva no dataset
+
   const modalBody = document.getElementById("modalBody");
   modalBody.innerHTML = "";
 
   // Cria campos para cada propriedade, exceto "id"
-  for (const key in item) {
-    if (key === "id") continue;
-    modalBody.innerHTML += `
-      <div class="form-row">
-        <label for="edit-${key}">${key}</label>
-        <input type="text" id="edit-${key}" value="${item[key] || ""}" />
+  modalBody.innerHTML = `
+    <form id="editForm" class="edit-form">
+      ${Object.keys(item)
+        .filter((key) => key !== "id")
+        .map((key) => {
+          const value = item[key] || "";
+          let inputField = "";
+
+          switch (key) {
+            case "status":
+              inputField = `
+                <select id="edit-${key}" class="edit-input">
+                  <option value="Ativo" ${value === "Ativo" ? "selected" : ""}>Ativo</option>
+                  <option value="Inativo" ${value === "Inativo" ? "selected" : ""}>Inativo</option>
+                  <option value="Pendente" ${value === "Pendente" ? "selected" : ""}>Pendente</option>
+                </select>`;
+              break;
+
+            case "turno":
+              inputField = `
+                <select id="edit-${key}" class="edit-input">
+                  <option value="Manhã" ${value === "Manhã" ? "selected" : ""}>Manhã</option>
+                  <option value="Tarde" ${value === "Tarde" ? "selected" : ""}>Tarde</option>
+                  <option value="Noite" ${value === "Noite" ? "selected" : ""}>Noite</option>
+                </select>`;
+              break;
+
+            case "dataAdmissao":
+            case "dataDesligamento":
+            case "dataTreinamento":
+            case "admissao":
+              inputField = `<input type="date" id="edit-${key}" class="edit-input" value="${value}" />`;
+              break;
+
+            default:
+              inputField = `<input type="text" id="edit-${key}" class="edit-input" value="${value}" />`;
+          }
+
+          return `
+            <div class="form-group">
+              <label for="edit-${key}" class="edit-label">
+                ${key.charAt(0).toUpperCase() + key.slice(1)}
+              </label>
+              ${inputField}
+            </div>
+          `;
+        })
+        .join("")}
+
+      <div class="edit-actions">
+        <button type="button" id="cancelEdit" class="btn btn-cancel">Cancelar</button>
+        <button type="button" id="saveEdit" class="btn btn-save">Salvar</button>
       </div>
-    `;
-  }
+    </form>
+  `;
 
   modal.classList.remove("hidden");
 
@@ -1484,28 +1533,34 @@ async addDesligamento(e) {
   document.getElementById("closeModal").onclick = () => {
     modal.classList.add("hidden");
   };
-
-  // Salvar alterações
-  document.getElementById("saveEdit").onclick = async () => {
-    const updatedData = {};
-    for (const key in item) {
-      if (key === "id") continue;
-      const input = document.getElementById(`edit-${key}`);
-      if (input) updatedData[key] = input.value;
-    }
-
-    try {
-      await updateDoc(doc(db, type, id), updatedData);
-      this.showNotification("Registro atualizado com sucesso!", "success");
-      modal.classList.add("hidden");
-      this.loadData(); // recarrega tabela
-    } catch (err) {
-      console.error("Erro ao atualizar:", err);
-      this.showNotification("Erro ao salvar alterações", "error");
-    }
-  };
 }
 
+
+// Salvar alterações no Firestore
+async saveEdit() {
+  const modal = document.getElementById("editModal");
+  const type = modal.dataset.type;
+  const id = modal.dataset.id; // id do Firestore
+
+  // Coletar os dados atualizados dos inputs do modal
+  const updatedData = {};
+  document.querySelectorAll("#editModal [id^='edit-']").forEach((input) => {
+    const field = input.id.replace("edit-", "");
+    updatedData[field] = input.value;
+  });
+
+  try {
+    // Atualizar no Firestore
+    await updateDoc(doc(db, type, id), updatedData);
+
+    this.showNotification("Registro atualizado com sucesso!", "success");
+    modal.classList.add("hidden");
+    this.loadData(); // recarrega os dados atualizados
+  } catch (err) {
+    console.error("Erro ao atualizar:", err);
+    this.showNotification("Erro ao salvar alterações", "error");
+  }
+}
 
   createEditForm(type, item) {
     switch (type) {
@@ -1602,66 +1657,31 @@ async addDesligamento(e) {
     }
   }
 
-  saveEdit() {
-    const modal = document.getElementById("editModal")
-    const type = modal.dataset.type
-    const id = Number.parseInt(modal.dataset.id)
+  async saveEdit() {
+  const modal = document.getElementById("editModal")
+  const type = modal.dataset.type
+  const id = modal.dataset.id // id do Firestore
 
-    const item = this.data[type].find((item) => item.id === id)
-    if (!item) return
+  // Coletar os dados atualizados dos inputs do modal
+  const updatedData = {}
+  document.querySelectorAll("#editModal [id^='edit-']").forEach((input) => {
+    const field = input.id.replace("edit-", "")
+    updatedData[field] = input.value
+  })
 
-    // Atualizar dados baseado no tipo
-    switch (type) {
-      case "training":
-        item.colaborador = document.getElementById("editColaborador").value
-        item.turno = document.getElementById("editTurno").value
-        item.carteira = document.getElementById("editCarteira").value
-        break
-      case "tracking":
-        item.colaborador = document.getElementById("editColaborador").value
-        item.cpf = document.getElementById("editCPF").value
-        item.turno = document.getElementById("editTurno").value
-        item.carteira = document.getElementById("editCarteira").value
-        item.status = document.getElementById("editStatus").value
-        break
-      case "trained":
-        item.nome = document.getElementById("editNome").value
-        item.supervisor = document.getElementById("editSupervisor").value
-        item.coordenador = document.getElementById("editCoordenador").value
-        item.turno = document.getElementById("editTurno").value
-        item.admissao = document.getElementById("editAdmissao").value
-        item.dataTreinamento = document.getElementById("editDataTreinamento").value
-        item.campanhas = document.getElementById("editCampanhas").value
+  try {
+    // Atualizar no Firestore
+    await updateDoc(doc(db, type, id), updatedData)
 
-        // Recalcular tempo de empresa
-        const admissaoDate = new Date(item.admissao)
-        const hoje = new Date()
-        const tempoEmpresa = Math.floor((hoje - admissaoDate) / (1000 * 60 * 60 * 24))
-        item.tempoEmpresa = `${tempoEmpresa} dias`
-        break
-      case "desligamentos":
-        item.operador = document.getElementById("editOperador").value
-        item.carteira = document.getElementById("editCarteira").value
-        item.dataAdmissao = document.getElementById("editDataAdmissao").value
-        item.motivo = document.getElementById("editMotivo").value
-        item.status = document.getElementById("editStatus").value
-        item.dataDesligamento = document.getElementById("editDataDesligamento").value
-        item.agencia = document.getElementById("editAgencia").value
-
-        // Recalcular dias na empresa
-        const admissaoDateDesl = new Date(item.dataAdmissao)
-        const desligamentoDate = new Date(item.dataDesligamento)
-        const diasEmpresa = Math.floor((desligamentoDate - admissaoDateDesl) / (1000 * 60 * 60 * 24))
-        item.diasEmpresa = diasEmpresa
-        break
-    }
-
-    this.saveData(type)
-    this.renderTable(type)
-    this.updateCharts()
-    this.closeModal()
-    this.showNotification("Item atualizado com sucesso!", "success")
+    this.showNotification("Registro atualizado com sucesso!", "success")
+    modal.classList.add("hidden")
+    this.loadData() // recarrega os dados atualizados
+  } catch (err) {
+    console.error("Erro ao atualizar:", err)
+    this.showNotification("Erro ao salvar alterações", "error")
   }
+}
+
 
   closeModal() {
     document.getElementById("editModal").classList.add("hidden")
