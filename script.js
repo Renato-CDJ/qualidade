@@ -16,6 +16,8 @@ class TrainingSystem {
     this.carteiras = ["Caixa", "Carrefour"] // Default carteiras
     this.hiddenCarteiras = new Set() // Track hidden carteiras
     this.customStatus = JSON.parse(localStorage.getItem("customStatus") || '["Ativo", "Desligado", "Remanejado"]')
+    this.simpleTrainingStatusView = false
+
 
     // Agora os dados começam vazios e serão carregados do Firestore
     this.data = {
@@ -65,17 +67,29 @@ class TrainingSystem {
 
     })
 
-    // Clique nos cards de estatísticas
+    // Clique nos cards de estatísticas (Aplicados, Pendentes, Não Aplicados)
 document.querySelectorAll(".stat-card.clickable").forEach(card => {
   card.addEventListener("click", () => {
     const status = card.dataset.status
+    // ativa modo simplificado
+    this.simpleTrainingStatusView = true
+    // abre a seção da tabela de status
     this.showOnlySection("trainingStatusSection", "treinamento")
 
-    // aplica filtro direto no select
+    // aplica filtro automático
     const filterSelect = document.getElementById("filterTrainingStatusTable")
-    filterSelect.value = status
-    this.filterTrainingStatusTable()
+    if (filterSelect) {
+      filterSelect.value = status
+    }
+    this.renderTrainingStatusTable()
   })
+})
+
+// Clique no botão "Ver Tabela de Status" → modo completo
+document.getElementById("viewTrainingStatusBtn").addEventListener("click", () => {
+  this.simpleTrainingStatusView = false
+  this.showOnlySection("trainingStatusSection", "treinamento")
+  this.renderTrainingStatusTable()
 })
 
     
@@ -873,24 +887,34 @@ async deleteItem(type, id) {
       break
 
     case "trainingStatus":
-      row.innerHTML = `
-        <td>${item.colaborador}</td>
-        <td>${item.turno}</td>
-        <td>${item.carteira}</td>
-        <td>${item.dataAdicionado}</td>
-        <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
-        <td class="admin-only">
-            <div class="action-buttons-table">
-                <button class="btn btn-sm btn-success" onclick="system.editItem('trainingStatus', '${item.id}')">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trainingStatus', '${item.id}')">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-      `
-      break
+  if (this.simpleTrainingStatusView) {
+    // 🔹 Só mostra Nome + Carteira
+    row.innerHTML = `
+      <td>${item.colaborador}</td>
+      <td>${item.carteira}</td>
+    `
+  } else {
+    // 🔹 Layout completo (como já era antes)
+    row.innerHTML = `
+      <td>${item.colaborador}</td>
+      <td>${item.turno}</td>
+      <td>${item.carteira}</td>
+      <td>${item.dataAdicionado}</td>
+      <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+      <td class="admin-only">
+          <div class="action-buttons-table">
+              <button class="btn btn-sm btn-success" onclick="system.editItem('trainingStatus', '${item.id}')">
+                  <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trainingStatus', '${item.id}')">
+                  <i class="fas fa-trash"></i>
+              </button>
+          </div>
+      </td>
+    `
+  }
+  break
+
 
     case "desligamentos":
       row.innerHTML = `
@@ -1891,47 +1915,46 @@ async saveData(type, item, id = null) {
   }
 
   // Adicionando novo método para renderizar tabela de status dos treinamentos
-  renderTrainingStatusTable() {
-    const tbody = document.querySelector("#trainingStatusTable tbody")
-    if (!tbody) return
+renderTrainingStatusTable() {
+  const thead = document.querySelector("#trainingStatusTable thead tr")
+  const tbody = document.querySelector("#trainingStatusTable tbody")
+  if (!thead || !tbody) return
 
-    const searchTerm = document.getElementById("searchTrainingStatus")?.value.toLowerCase() || ""
-    const statusFilter = document.getElementById("filterTrainingStatus")?.value || ""
-
-    const filteredData = this.data.trainingStatus.filter((item) => {
-      const matchesSearch = item.colaborador.toLowerCase().includes(searchTerm)
-      const matchesStatus = !statusFilter || item.status === statusFilter
-      return matchesSearch && matchesStatus
-    })
-
-    tbody.innerHTML = ""
-    filteredData.forEach((item) => {
-      const row = this.createTrainingStatusRow(item)
-      tbody.appendChild(row)
-    })
+  // 🔑 Cabeçalho dinâmico
+  if (this.simpleTrainingStatusView) {
+    thead.innerHTML = `
+      <th>Colaborador</th>
+      <th>Carteira</th>
+    `
+  } else {
+    thead.innerHTML = `
+      <th>Colaborador</th>
+      <th>Turno</th>
+      <th>Carteira</th>
+      <th>Data Adicionado</th>
+      <th>Status do Treinamento</th>
+      <th class="admin-only">Ações</th>
+    `
   }
 
-  filterTrainingStatusTable(searchTerm = "", statusFilter = "") {
-    const tbody = document.querySelector("#trainingStatusTable tbody")
-    if (!tbody) return
+  // Filtros (mesma lógica que você já tinha)
+  const searchTerm = document.getElementById("searchTrainingStatus")?.value.toLowerCase() || ""
+  const statusFilter = document.getElementById("filterTrainingStatus")?.value || ""
 
-    tbody.innerHTML = ""
+  let filteredData = this.data.trainingStatus.filter((item) => {
+    const matchesSearch = item.colaborador.toLowerCase().includes(searchTerm)
+    const matchesStatus = !statusFilter || item.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
-    let filteredData = [...this.data.trainingStatus]
+  tbody.innerHTML = ""
+  filteredData.forEach((item) => {
+    // 🔑 Aqui usamos createTableRow para respeitar o modo simples/normal
+    const row = this.createTableRow("trainingStatus", item)
+    tbody.appendChild(row)
+  })
+}
 
-    if (searchTerm) {
-      filteredData = filteredData.filter((item) => item.colaborador.toLowerCase().includes(searchTerm.toLowerCase()))
-    }
-
-    if (statusFilter) {
-      filteredData = filteredData.filter((item) => item.status === statusFilter)
-    }
-
-    filteredData.forEach((item) => {
-      const row = this.createTrainingStatusRow(item)
-      tbody.appendChild(row)
-    })
-  }
 
   // Adicionando novo método para criar linha da tabela de status
   createTrainingStatusRow(item) {
