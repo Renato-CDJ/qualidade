@@ -779,78 +779,118 @@ async addDesligamento(e) {
   }
 
   createTableRow(type, item) {
-    const row = document.createElement("tr")
+  const row = document.createElement("tr")
 
-    switch (type) {
-  case "tracking":
-    row.innerHTML = `
-      <td>${item.colaborador}</td>
-      <td>${item.cpf}</td>
-      <td>${item.turno}</td>
-      <td>${item.carteira}</td>
-      <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
-      <td class="admin-only">
-          <div class="action-buttons-table">
-              <button class="btn btn-sm btn-success" onclick="system.editItem('tracking', '${item.id}')">
-                  <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', '${item.id}')">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </div>
-      </td>
-    `;
-    break;
+  switch (type) {
+    case "training":
+      row.innerHTML = `
+        <td>${item.colaborador}</td>
+        <td>${item.turno}</td>
+        <td>${item.carteira}</td>
+        <td>${item.dataAdicionado}</td>
+        <td class="admin-only">
+            <div class="action-buttons-table">
+                <button class="btn btn-sm btn-success" onclick="system.editItem('training', '${item.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('training', '${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+      `
+      break
 
-  case "trained":
-    row.innerHTML = `
-      <td>${item.nome}</td>
-      <td>${item.supervisor}</td>
-      <td>${item.coordenador}</td>
-      <td>${item.turno}</td>
-      <td>${new Date(item.admissao).toLocaleDateString("pt-BR")}</td>
-      <td>${item.tempoEmpresa}</td>
-      <td>${item.dataTreinamento ? new Date(item.dataTreinamento).toLocaleDateString("pt-BR") : "N/A"}</td>
-      <td>${item.campanhas}</td>
-      <td class="admin-only">
-          <div class="action-buttons-table">
-              <button class="btn btn-sm btn-success" onclick="system.editItem('trained', '${item.id}')">
-                  <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', '${item.id}')">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </div>
-      </td>
-    `;
-    break;
+    case "tracking":
+      row.innerHTML = `
+        <td>${item.colaborador}</td>
+        <td>${item.cpf}</td>
+        <td>${item.turno}</td>
+        <td>${item.carteira}</td>
+        <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+        <td class="admin-only">
+            <div class="action-buttons-table">
+                <button class="btn btn-sm btn-success" onclick="system.editItem('tracking', '${item.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', '${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+      `
+      break
 
-  case "desligamentos":
-    row.innerHTML = `
-      <td>${item.operador}</td>
-      <td>${item.carteira}</td>
-      <td>${new Date(item.dataAdmissao).toLocaleDateString("pt-BR")}</td>
-      <td>${item.diasEmpresa} dias</td>
-      <td>${item.motivo}</td>
-      <td><span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, "-")}">${item.status}</span></td>
-      <td>${new Date(item.dataDesligamento).toLocaleDateString("pt-BR")}</td>
-      <td>${item.agencia}</td>
-      <td class="admin-only">
-          <div class="action-buttons-table">
-              <button class="btn btn-sm btn-success" onclick="system.editItem('desligamentos', '${item.id}')">
-                  <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="system.deleteItem('desligamentos', '${item.id}')">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </div>
-      </td>
-    `;
-    break;
+    case "trained":
+      row.innerHTML = `
+        <td>${item.nome}</td>
+        <td>${item.supervisor}</td>
+        <td>${item.coordenador}</td>
+        <td>${item.turno}</td>
+        <td>${new Date(item.admissao).toLocaleDateString("pt-BR")}</td>
+        <td>${item.tempoEmpresa}</td>
+        <td>${item.dataTreinamento ? new Date(item.dataTreinamento).toLocaleDateString("pt-BR") : "N/A"}</td>
+        <td>${item.campanhas}</td>
+        <td class="admin-only">
+            <div class="action-buttons-table">
+                <button class="btn btn-sm btn-success" onclick="system.editItem('trained', '${item.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', '${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+      `
+      break
+
+    case "trainingStatus":
+      row.innerHTML = `
+        <td>${item.colaborador}</td>
+        <td>${item.turno}</td>
+        <td>${item.carteira}</td>
+        <td>${item.dataAdicionado}</td>
+        <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+        <td class="admin-only">
+            <div class="action-buttons-table">
+                <button class="btn btn-sm btn-success" onclick="system.editItem('trainingStatus', '${item.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trainingStatus', '${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+      `
+      break
+
+    case "desligamentos":
+      row.innerHTML = `
+        <td>${item.operador}</td>
+        <td>${item.carteira}</td>
+        <td>${new Date(item.dataAdmissao).toLocaleDateString("pt-BR")}</td>
+        <td>${item.diasEmpresa} dias</td>
+        <td>${item.motivo}</td>
+        <td><span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, "-")}">${item.status}</span></td>
+        <td>${new Date(item.dataDesligamento).toLocaleDateString("pt-BR")}</td>
+        <td>${item.agencia}</td>
+        <td class="admin-only">
+            <div class="action-buttons-table">
+                <button class="btn btn-sm btn-success" onclick="system.editItem('desligamentos', '${item.id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('desligamentos', '${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+      `
+      break
+  }
+
+  return row
 }
 
-    return row
-  }
 
   // Busca e Filtros
   getFilteredData(type) {
