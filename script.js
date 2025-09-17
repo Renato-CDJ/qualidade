@@ -64,7 +64,7 @@ class TrainingSystem {
       btn.addEventListener("click", (e) => this.switchTab(e.currentTarget.dataset.tab))
 
     })
-
+    
     // Training section buttons
     document
       .getElementById("addTrainingBtn")

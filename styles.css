@@ -1539,3 +1539,48 @@ body {
     transform: scale(1);
   }
 }
+
+/* ===== Estilo moderno para o SELECT de Ações na Tabela de Status ===== */
+#trainingStatusTable select {
+  appearance: none; /* remove estilo padrão */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 35px 8px 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+/* Ícone de seta customizado */
+#trainingStatusTable select {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23ff6b35' height='24' viewBox='0 0 24 24' width='24'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+}
+
+/* Hover e foco */
+#trainingStatusTable select:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 5px rgba(255, 107, 53, 0.3);
+  transform: translateY(-2px);
+}
+
+#trainingStatusTable select:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+
+/* Ajuste para cada opção */
+#trainingStatusTable option {
+  font-size: 0.9rem;
+  padding: 8px;
+}
