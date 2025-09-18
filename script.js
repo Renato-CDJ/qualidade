@@ -83,17 +83,13 @@ class TrainingSystem {
 document.querySelectorAll(".stat-card.clickable").forEach(card => {
   card.addEventListener("click", () => {
     const status = card.dataset.status
-    // ativa modo simplificado
     this.simpleTrainingStatusView = true
-    // abre a seção da tabela de status
-    this.showOnlySection("trainingStatusSection", "treinamento")
 
-    // aplica filtro automático
-    const filterSelect = document.getElementById("filterTrainingStatusTable")
-    if (filterSelect) {
-      filterSelect.value = status
-    }
-    this.renderTrainingStatusTable()
+    // Mostrar seção de novo treinamento em vez da tabela de status
+    this.showOnlySection("newTrainingSection", "treinamento")
+
+    // Aplicar filtro automático no campo "filterTrainingStatus" (se ainda quiser)
+    this.applyFilters("training", status)
   })
 })
 
