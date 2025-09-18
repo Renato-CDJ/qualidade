@@ -921,26 +921,29 @@ async deleteItem(type, id) {
       break
 
     case "trainingStatus":
-  if (this.simpleTrainingStatusView) {
-    row.innerHTML = `
-      <td>${item.colaborador}</td>
-      <td>${item.carteira}</td>
-      <td>
-        ${
-          this.isAdmin
-            ? `
-              <select class="status-select" data-id="${item.id}">
-                <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
-                <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
-                <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
-              </select>
-            `
-            : `<span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, "-")}">${item.status}</span>`
-        }
-      </td>
-    `
-  }
-  break
+  row.innerHTML = `
+    <td>${item.colaborador}</td>
+    <td>${item.turno || ""}</td>
+    <td>${item.carteira}</td>
+    <td>${item.dataAdicionado || ""}</td>
+    <td>
+      <select id="editStatus">
+        ${this.customStatus
+          .map(s => `<option value="${s}" ${item.status === s ? "selected" : ""}>${s}</option>`)
+          .join("")}
+      </select>
+    </td>
+    <td class="inline-actions">
+      <button class="btn btn-save" onclick="system.saveInlineEdit('trainingStatus', '${item.id}')">
+        <i class="fas fa-save"></i> Salvar
+      </button>
+      <button class="btn btn-cancel" onclick="system.cancelInlineEdit('trainingStatus')">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+    </td>
+  `;
+  break;
+
 
     case "desligamentos":
       row.innerHTML = `
@@ -1097,7 +1100,7 @@ editItemInline(type, id) {
   `;
 }
 
-// 🔹 Salvar edição inline (genérico)
+/// 🔹 Salvar edição inline (genérico)
 async saveInlineEdit(type, id) {
   if (!this.isAdmin) return;
   let data = {};
@@ -1140,6 +1143,7 @@ async saveInlineEdit(type, id) {
         agencia: document.getElementById("editAgencia").value
       };
     } else if (type === "trainingStatus") {
+      // 🔹 Agora usa status customizados também
       data = { status: document.getElementById("editStatus").value };
     }
 
@@ -1152,6 +1156,7 @@ async saveInlineEdit(type, id) {
   }
 }
 
+// 🔹 Cancelar edição inline
 cancelInlineEdit(type) {
   this.renderTable(type);
 }
