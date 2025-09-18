@@ -31,6 +31,17 @@ class TrainingSystem {
     this.init()
   }
 
+  loadTrainingStatus() {
+  onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
+    this.data.trainingStatus = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+
+    // sempre renderiza a tabela de status quando atualizar no Firestore
+    this.renderTrainingStatusTable()
+  })
+}
 
   init() {
     this.loadData()
@@ -50,6 +61,7 @@ class TrainingSystem {
     this.applyUserPermissions()
     this.setupModalEvents()
     this.setupToggleFeatures()
+    this.loadTrainingStatus()
   }
 
   setupEventListeners() {
@@ -91,6 +103,24 @@ document.getElementById("viewTrainingStatusBtn").addEventListener("click", () =>
   this.showOnlySection("trainingStatusSection", "treinamento")
   this.renderTrainingStatusTable()
 })
+
+// Delegação de evento para selects de status
+document.addEventListener("change", async (e) => {
+  if (e.target.classList.contains("status-select")) {
+    const id = e.target.dataset.id
+    const newStatus = e.target.value
+
+    try {
+      await updateDoc(doc(db, "trainingStatus", id), { status: newStatus })
+      this.showNotification("Status atualizado com sucesso!", "success")
+      this.loadData() // recarrega dados atualizados
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err)
+      this.showNotification("Erro ao atualizar status", "error")
+    }
+  }
+})
+
 
     
     // Training section buttons
@@ -189,10 +219,13 @@ document.getElementById("viewTrainingStatusBtn").addEventListener("click", () =>
     document
       .getElementById("filterDesligamentosStatus")
       .addEventListener("change", (e) => this.applyFilters("desligamentos"))
-    document.getElementById("filterTrainingStatus").addEventListener("change", (e) => this.filterTrainingStatusTable())
-    document
-      .getElementById("filterTrainingStatusTable")
-      .addEventListener("change", (e) => this.filterTrainingStatusTable())
+    
+      document.getElementById("filterTrainingStatus")?.addEventListener("change", () => this.renderTrainingStatusTable())
+document.getElementById("filterTrainingStatusTable")?.addEventListener("change", () => this.renderTrainingStatusTable())
+
+document.getElementById("searchTrainingStatus")?.addEventListener("input", (e) => this.renderTrainingStatusTable(e.target.value))
+document.getElementById("searchTrainingStatusTable")?.addEventListener("input", (e) => this.renderTrainingStatusTable(e.target.value))
+
 
     this.updateStatusSelects()
   }
@@ -888,31 +921,19 @@ async deleteItem(type, id) {
 
     case "trainingStatus":
   if (this.simpleTrainingStatusView) {
-    // 🔹 Só mostra Nome + Carteira
-    row.innerHTML = `
-      <td>${item.colaborador}</td>
-      <td>${item.carteira}</td>
-    `
-  } else {
-    // 🔹 Layout completo (como já era antes)
-    row.innerHTML = `
-      <td>${item.colaborador}</td>
-      <td>${item.turno}</td>
-      <td>${item.carteira}</td>
-      <td>${item.dataAdicionado}</td>
-      <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
-      <td class="admin-only">
-          <div class="action-buttons-table">
-              <button class="btn btn-sm btn-success" onclick="system.editItem('trainingStatus', '${item.id}')">
-                  <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trainingStatus', '${item.id}')">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </div>
-      </td>
-    `
-  }
+  row.innerHTML = `
+    <td>${item.colaborador}</td>
+    <td>${item.carteira}</td>
+    <td>
+      <select class="status-select" data-id="${item.id}">
+        <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
+        <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
+        <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
+      </select>
+    </td>
+  `
+}
+
   break
 
 
@@ -1915,16 +1936,17 @@ async saveData(type, item, id = null) {
   }
 
   // Adicionando novo método para renderizar tabela de status dos treinamentos
-renderTrainingStatusTable() {
+renderTrainingStatusTable(searchTerm = "") {
   const thead = document.querySelector("#trainingStatusTable thead tr")
   const tbody = document.querySelector("#trainingStatusTable tbody")
   if (!thead || !tbody) return
 
-  // 🔑 Cabeçalho dinâmico
+  // Cabeçalho dinâmico
   if (this.simpleTrainingStatusView) {
     thead.innerHTML = `
       <th>Colaborador</th>
       <th>Carteira</th>
+      <th>Status</th>
     `
   } else {
     thead.innerHTML = `
@@ -1937,23 +1959,26 @@ renderTrainingStatusTable() {
     `
   }
 
-  // Filtros (mesma lógica que você já tinha)
-  const searchTerm = document.getElementById("searchTrainingStatus")?.value.toLowerCase() || ""
-  const statusFilter = document.getElementById("filterTrainingStatus")?.value || ""
+  // Filtros
+  const statusFilter =
+    (document.getElementById("filterTrainingStatus")?.value ||
+     document.getElementById("filterTrainingStatusTable")?.value ||
+     "")
 
   let filteredData = this.data.trainingStatus.filter((item) => {
-    const matchesSearch = item.colaborador.toLowerCase().includes(searchTerm)
+    const matchesSearch = !searchTerm || item.colaborador.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || item.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
+  // Renderiza
   tbody.innerHTML = ""
   filteredData.forEach((item) => {
-    // 🔑 Aqui usamos createTableRow para respeitar o modo simples/normal
     const row = this.createTableRow("trainingStatus", item)
     tbody.appendChild(row)
   })
 }
+
 
 
   // Adicionando novo método para criar linha da tabela de status
@@ -2190,45 +2215,45 @@ renderTrainingStatusTable() {
 
   // Carrega dados do Firestore
 loadData() {
-  // Training
+  // Treinamentos
   onSnapshot(collection(db, "training"), (snapshot) => {
-    this.data.training = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.data.training = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     this.renderTable("training")
     this.updateTrainingStats()
-    this.updateCharts()
   })
 
-  // Tracking
+  // Acompanhamento
   onSnapshot(collection(db, "tracking"), (snapshot) => {
-    this.data.tracking = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.data.tracking = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     this.renderTable("tracking")
     this.updateCharts()
   })
 
-  // Trained
+  // Treinados
   onSnapshot(collection(db, "trained"), (snapshot) => {
-    this.data.trained = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.data.trained = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     this.renderTable("trained")
     this.updateTrainedStats()
-    this.updateCharts()
   })
 
   // Desligamentos
   onSnapshot(collection(db, "desligamentos"), (snapshot) => {
-    this.data.desligamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    this.data.desligamentos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     this.renderTable("desligamentos")
     this.updateDesligadosStats()
-    this.updateCharts()
   })
 
-  // TrainingStatus
-  onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
-    this.data.trainingStatus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    this.renderTrainingStatusTable()
-    this.updateTrainingStats()
-    this.updateCharts()
-  })
+  // Status dos treinamentos
+onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
+  this.data.trainingStatus = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+  this.renderTrainingStatusTable()
+})
+
 }
+
 
   updateTrainingStats() {
     const totalTrainings = this.data.trainingStatus.length
