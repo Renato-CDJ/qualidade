@@ -877,24 +877,24 @@ async deleteItem(type, id) {
       break
 
     case "tracking":
-      row.innerHTML = `
-        <td>${item.colaborador}</td>
-        <td>${item.cpf}</td>
-        <td>${item.turno}</td>
-        <td>${item.carteira}</td>
-        <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
-        <td class="admin-only">
-            <div class="action-buttons-table">
-                <button class="btn btn-sm btn-success" onclick="system.editItem('tracking', '${item.id}')">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', '${item.id}')">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-      `
-      break
+  row.innerHTML = `
+    <td>${item.colaborador}</td>
+    <td>${item.cpf}</td>
+    <td>${item.turno}</td>
+    <td>${item.carteira}</td>
+    <td><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></td>
+    <td class="admin-only">
+        <div class="action-buttons-table">
+            <button class="btn btn-sm btn-success" onclick="system.editItemInline('tracking', '${item.id}')">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="system.deleteItem('tracking', '${item.id}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </td>
+  `
+  break
 
     case "trained":
       row.innerHTML = `
@@ -937,10 +937,9 @@ async deleteItem(type, id) {
             : `<span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, "-")}">${item.status}</span>`
         }
       </td>
-    `;
+    `
   }
-  break;
-
+  break
 
     case "desligamentos":
       row.innerHTML = `
@@ -969,6 +968,70 @@ async deleteItem(type, id) {
   return row
 }
 
+  // Edita tabela diretamente nela
+editItemInline(type, id) {
+  const tbody = document.querySelector(`#${this.getTableId(type)} tbody`)
+  const row = [...tbody.children].find(r => r.querySelector(`button[onclick*="'${id}'"]`))
+  if (!row) return
+
+  const item = this.data[type].find(d => d.id === id)
+  if (!item) return
+
+  // substitui linha por inputs
+  row.innerHTML = `
+    <td><input type="text" id="edit-colaborador-${id}" value="${item.colaborador}"></td>
+    <td><input type="text" id="edit-cpf-${id}" value="${item.cpf}"></td>
+    <td>
+      <select id="edit-turno-${id}">
+        <option ${item.turno === "Manhã" ? "selected" : ""}>Manhã</option>
+        <option ${item.turno === "Tarde" ? "selected" : ""}>Tarde</option>
+        <option ${item.turno === "Integral" ? "selected" : ""}>Integral</option>
+      </select>
+    </td>
+    <td>
+      <select id="edit-carteira-${id}">
+        ${this.carteiras.map(c => `<option ${c === item.carteira ? "selected" : ""}>${c}</option>`).join("")}
+      </select>
+    </td>
+    <td>
+      <select id="edit-status-${id}">
+        ${this.customStatus.map(s => `<option ${s === item.status ? "selected" : ""}>${s}</option>`).join("")}
+      </select>
+    </td>
+    <td class="admin-only">
+      <button class="btn btn-sm btn-success" onclick="system.saveItemInline('${type}', '${id}')">
+        <i class="fas fa-check"></i>
+      </button>
+      <button class="btn btn-sm btn-secondary" onclick="system.cancelEditInline('${type}')">
+        <i class="fas fa-times"></i>
+      </button>
+    </td>
+  `
+}
+
+async saveItemInline(type, id) {
+  try {
+    const colaborador = document.getElementById(`edit-colaborador-${id}`).value
+    const cpf = document.getElementById(`edit-cpf-${id}`).value
+    const turno = document.getElementById(`edit-turno-${id}`).value
+    const carteira = document.getElementById(`edit-carteira-${id}`).value
+    const status = document.getElementById(`edit-status-${id}`).value
+
+    await updateDoc(doc(db, type, id), {
+      colaborador, cpf, turno, carteira, status
+    })
+
+    this.showNotification("Registro atualizado!", "success")
+    this.loadData() // recarrega tabela
+  } catch (err) {
+    console.error("Erro ao salvar edição:", err)
+    this.showNotification("Erro ao salvar edição", "error")
+  }
+}
+
+cancelEditInline(type) {
+  this.renderTable(type) // volta tabela original
+}
 
   // Busca e Filtros
   getFilteredData(type) {
@@ -1964,25 +2027,27 @@ renderTrainingStatusTable(searchTerm = "") {
     `
   }
 
-  // Filtros
+  // 🔎 Lê filtro selecionado
   const statusFilter =
     (document.getElementById("filterTrainingStatus")?.value ||
      document.getElementById("filterTrainingStatusTable")?.value ||
      "")
 
+  // 🔎 Aplica filtros
   let filteredData = this.data.trainingStatus.filter((item) => {
-    const matchesSearch = !searchTerm || item.colaborador.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = !searchTerm || item.colaborador?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || item.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  // Renderiza
+  // 🔄 Renderiza linhas
   tbody.innerHTML = ""
   filteredData.forEach((item) => {
     const row = this.createTableRow("trainingStatus", item)
     tbody.appendChild(row)
   })
 }
+
 
   // Adicionando novo método para criar linha da tabela de status
   createTrainingStatusRow(item) {
