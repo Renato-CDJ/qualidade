@@ -1462,3 +1462,61 @@ body {
   padding: 10px;
   font-size: 14px;
 }
+
+/* Linha em edição */
+.table-row-editing {
+  background: var(--primary-color-light, rgba(255, 107, 53, 0.05));
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+/* Inputs inline */
+.table-row-editing input,
+.table-row-editing select {
+  padding: 8px 12px;
+  border: 2px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--background-color);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.table-row-editing input:focus,
+.table-row-editing select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2);
+}
+
+/* Botões inline */
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.inline-actions .btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.inline-actions .btn-save {
+  background: var(--success-color);
+  color: white;
+}
+
+.inline-actions .btn-save:hover {
+  background: #218838;
+}
+
+.inline-actions .btn-cancel {
+  background: var(--danger-color);
+  color: white;
+}
+
+.inline-actions .btn-cancel:hover {
+  background: #c82333;
+}

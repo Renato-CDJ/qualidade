@@ -865,8 +865,8 @@ async deleteItem(type, id) {
         <td>${item.dataAdicionado}</td>
         <td class="admin-only">
             <div class="action-buttons-table">
-                <button class="btn btn-sm btn-success" onclick="system.editItem('training', '${item.id}')">
-                    <i class="fas fa-edit"></i>
+                <button class="btn btn-sm btn-success" onclick="system.editItemInline('training', '${item.id}')">
+                  <i class="fas fa-edit"></i>
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="system.deleteItem('training', '${item.id}')">
                     <i class="fas fa-trash"></i>
@@ -908,9 +908,10 @@ async deleteItem(type, id) {
         <td>${item.campanhas}</td>
         <td class="admin-only">
             <div class="action-buttons-table">
-                <button class="btn btn-sm btn-success" onclick="system.editItem('trained', '${item.id}')">
+                <button class="btn btn-sm btn-success" onclick="system.editItemInline('trained', '${item.id}')">
                     <i class="fas fa-edit"></i>
                 </button>
+
                 <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trained', '${item.id}')">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -953,9 +954,10 @@ async deleteItem(type, id) {
         <td>${item.agencia}</td>
         <td class="admin-only">
             <div class="action-buttons-table">
-                <button class="btn btn-sm btn-success" onclick="system.editItem('desligamentos', '${item.id}')">
+                <button class="btn btn-sm btn-success" onclick="system.editItemInline('desligamentos', '${item.id}')">
                     <i class="fas fa-edit"></i>
                 </button>
+
                 <button class="btn btn-sm btn-danger" onclick="system.deleteItem('desligamentos', '${item.id}')">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -968,70 +970,192 @@ async deleteItem(type, id) {
   return row
 }
 
-  // Edita tabela diretamente nela
+ // 🔹 Editar item inline (funciona para qualquer tabela)
 editItemInline(type, id) {
-  const tbody = document.querySelector(`#${this.getTableId(type)} tbody`)
-  const row = [...tbody.children].find(r => r.querySelector(`button[onclick*="'${id}'"]`))
-  if (!row) return
+  if (!this.isAdmin) return;
 
-  const item = this.data[type].find(d => d.id === id)
-  if (!item) return
+  const tableId = this.getTableId(type);
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const row = [...tbody.querySelectorAll("tr")].find(r => r.querySelector(`button[onclick*="'${id}'"]`));
 
-  // substitui linha por inputs
+  if (!row) return;
+  const item = this.data[type].find(d => d.id === id);
+
+  row.classList.add("table-row-editing");
+
+  // Campos padrão
+  let fields = "";
+
+  switch (type) {
+    case "training":
+      fields = `
+        <td><input type="text" id="editColaborador" value="${item.colaborador}"></td>
+        <td>
+          <select id="editTurno">
+            <option value="Manhã" ${item.turno === "Manhã" ? "selected" : ""}>Manhã</option>
+            <option value="Tarde" ${item.turno === "Tarde" ? "selected" : ""}>Tarde</option>
+            <option value="Integral" ${item.turno === "Integral" ? "selected" : ""}>Integral</option>
+          </select>
+        </td>
+        <td>
+          <select id="editCarteira">
+            ${this.carteiras.map(c => `<option value="${c}" ${item.carteira === c ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+        </td>
+        <td>${item.dataAdicionado || ""}</td>
+      `;
+      break;
+
+    case "tracking":
+      fields = `
+        <td><input type="text" id="editColaborador" value="${item.colaborador}"></td>
+        <td><input type="text" id="editCPF" value="${item.cpf}"></td>
+        <td>
+          <select id="editTurno">
+            <option value="Manhã" ${item.turno === "Manhã" ? "selected" : ""}>Manhã</option>
+            <option value="Tarde" ${item.turno === "Tarde" ? "selected" : ""}>Tarde</option>
+            <option value="Integral" ${item.turno === "Integral" ? "selected" : ""}>Integral</option>
+          </select>
+        </td>
+        <td>
+          <select id="editCarteira">
+            ${this.carteiras.map(c => `<option value="${c}" ${item.carteira === c ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+        </td>
+        <td>
+          <select id="editStatus">
+            ${this.customStatus.map(s => `<option value="${s}" ${item.status === s ? "selected" : ""}>${s}</option>`).join("")}
+          </select>
+        </td>
+      `;
+      break;
+
+    case "trained":
+      fields = `
+        <td><input type="text" id="editNome" value="${item.nome}"></td>
+        <td><input type="text" id="editSupervisor" value="${item.supervisor}"></td>
+        <td><input type="text" id="editCoordenador" value="${item.coordenador}"></td>
+        <td>
+          <select id="editTurno">
+            <option value="Manhã" ${item.turno === "Manhã" ? "selected" : ""}>Manhã</option>
+            <option value="Tarde" ${item.turno === "Tarde" ? "selected" : ""}>Tarde</option>
+            <option value="Integral" ${item.turno === "Integral" ? "selected" : ""}>Integral</option>
+          </select>
+        </td>
+        <td><input type="date" id="editAdmissao" value="${item.admissao || ""}"></td>
+        <td><input type="text" id="editTempo" value="${item.tempoEmpresa}"></td>
+        <td><input type="date" id="editTreinamento" value="${item.dataTreinamento || ""}"></td>
+        <td><input type="text" id="editCampanhas" value="${item.campanhas}"></td>
+      `;
+      break;
+
+    case "desligamentos":
+      fields = `
+        <td><input type="text" id="editOperador" value="${item.operador}"></td>
+        <td>
+          <select id="editCarteira">
+            ${this.carteiras.map(c => `<option value="${c}" ${item.carteira === c ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+        </td>
+        <td><input type="date" id="editAdmissao" value="${item.dataAdmissao || ""}"></td>
+        <td><input type="number" id="editDias" value="${item.diasEmpresa}"></td>
+        <td><input type="text" id="editMotivo" value="${item.motivo}"></td>
+        <td>
+          <select id="editStatus">
+            ${this.customStatus.map(s => `<option value="${s}" ${item.status === s ? "selected" : ""}>${s}</option>`).join("")}
+          </select>
+        </td>
+        <td><input type="date" id="editDesligamento" value="${item.dataDesligamento || ""}"></td>
+        <td><input type="text" id="editAgencia" value="${item.agencia}"></td>
+      `;
+      break;
+
+    case "trainingStatus":
+      fields = `
+        <td>${item.colaborador}</td>
+        <td>${item.turno || ""}</td>
+        <td>${item.carteira}</td>
+        <td>${item.dataAdicionado || ""}</td>
+        <td>
+          <select id="editStatus">
+            <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
+            <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
+            <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
+          </select>
+        </td>
+      `;
+      break;
+  }
+
+  // Linha completa com botões
   row.innerHTML = `
-    <td><input type="text" id="edit-colaborador-${id}" value="${item.colaborador}"></td>
-    <td><input type="text" id="edit-cpf-${id}" value="${item.cpf}"></td>
-    <td>
-      <select id="edit-turno-${id}">
-        <option ${item.turno === "Manhã" ? "selected" : ""}>Manhã</option>
-        <option ${item.turno === "Tarde" ? "selected" : ""}>Tarde</option>
-        <option ${item.turno === "Integral" ? "selected" : ""}>Integral</option>
-      </select>
+    ${fields}
+    <td class="inline-actions">
+      <button class="btn btn-save" onclick="system.saveInlineEdit('${type}', '${id}')"><i class="fas fa-save"></i> Salvar</button>
+      <button class="btn btn-cancel" onclick="system.cancelInlineEdit('${type}')"><i class="fas fa-times"></i> Cancelar</button>
     </td>
-    <td>
-      <select id="edit-carteira-${id}">
-        ${this.carteiras.map(c => `<option ${c === item.carteira ? "selected" : ""}>${c}</option>`).join("")}
-      </select>
-    </td>
-    <td>
-      <select id="edit-status-${id}">
-        ${this.customStatus.map(s => `<option ${s === item.status ? "selected" : ""}>${s}</option>`).join("")}
-      </select>
-    </td>
-    <td class="admin-only">
-      <button class="btn btn-sm btn-success" onclick="system.saveItemInline('${type}', '${id}')">
-        <i class="fas fa-check"></i>
-      </button>
-      <button class="btn btn-sm btn-secondary" onclick="system.cancelEditInline('${type}')">
-        <i class="fas fa-times"></i>
-      </button>
-    </td>
-  `
+  `;
 }
 
-async saveItemInline(type, id) {
+// 🔹 Salvar edição inline (genérico)
+async saveInlineEdit(type, id) {
+  if (!this.isAdmin) return;
+  let data = {};
+
   try {
-    const colaborador = document.getElementById(`edit-colaborador-${id}`).value
-    const cpf = document.getElementById(`edit-cpf-${id}`).value
-    const turno = document.getElementById(`edit-turno-${id}`).value
-    const carteira = document.getElementById(`edit-carteira-${id}`).value
-    const status = document.getElementById(`edit-status-${id}`).value
+    if (type === "training") {
+      data = {
+        colaborador: document.getElementById("editColaborador").value,
+        turno: document.getElementById("editTurno").value,
+        carteira: document.getElementById("editCarteira").value
+      };
+    } else if (type === "tracking") {
+      data = {
+        colaborador: document.getElementById("editColaborador").value,
+        cpf: document.getElementById("editCPF").value,
+        turno: document.getElementById("editTurno").value,
+        carteira: document.getElementById("editCarteira").value,
+        status: document.getElementById("editStatus").value
+      };
+    } else if (type === "trained") {
+      data = {
+        nome: document.getElementById("editNome").value,
+        supervisor: document.getElementById("editSupervisor").value,
+        coordenador: document.getElementById("editCoordenador").value,
+        turno: document.getElementById("editTurno").value,
+        admissao: document.getElementById("editAdmissao").value,
+        tempoEmpresa: document.getElementById("editTempo").value,
+        dataTreinamento: document.getElementById("editTreinamento").value,
+        campanhas: document.getElementById("editCampanhas").value
+      };
+    } else if (type === "desligamentos") {
+      data = {
+        operador: document.getElementById("editOperador").value,
+        carteira: document.getElementById("editCarteira").value,
+        dataAdmissao: document.getElementById("editAdmissao").value,
+        diasEmpresa: parseInt(document.getElementById("editDias").value, 10),
+        motivo: document.getElementById("editMotivo").value,
+        status: document.getElementById("editStatus").value,
+        dataDesligamento: document.getElementById("editDesligamento").value,
+        agencia: document.getElementById("editAgencia").value
+      };
+    } else if (type === "trainingStatus") {
+      data = { status: document.getElementById("editStatus").value };
+    }
 
-    await updateDoc(doc(db, type, id), {
-      colaborador, cpf, turno, carteira, status
-    })
-
-    this.showNotification("Registro atualizado!", "success")
-    this.loadData() // recarrega tabela
+    await updateDoc(doc(db, type, id), data);
+    this.showNotification("Registro atualizado!", "success");
+    this.loadData();
   } catch (err) {
-    console.error("Erro ao salvar edição:", err)
-    this.showNotification("Erro ao salvar edição", "error")
+    console.error("Erro ao salvar edição:", err);
+    this.showNotification("Erro ao salvar edição", "error");
   }
 }
 
-cancelEditInline(type) {
-  this.renderTable(type) // volta tabela original
+cancelInlineEdit(type) {
+  this.renderTable(type);
 }
+
 
   // Busca e Filtros
   getFilteredData(type) {
