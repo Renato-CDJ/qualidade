@@ -921,20 +921,25 @@ async deleteItem(type, id) {
 
     case "trainingStatus":
   if (this.simpleTrainingStatusView) {
-  row.innerHTML = `
-    <td>${item.colaborador}</td>
-    <td>${item.carteira}</td>
-    <td>
-      <select class="status-select" data-id="${item.id}">
-        <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
-        <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
-        <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
-      </select>
-    </td>
-  `
-}
-
-  break
+    row.innerHTML = `
+      <td>${item.colaborador}</td>
+      <td>${item.carteira}</td>
+      <td>
+        ${
+          this.isAdmin
+            ? `
+              <select class="status-select" data-id="${item.id}">
+                <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
+                <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
+                <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
+              </select>
+            `
+            : `<span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, "-")}">${item.status}</span>`
+        }
+      </td>
+    `;
+  }
+  break;
 
 
     case "desligamentos":
@@ -1978,8 +1983,6 @@ renderTrainingStatusTable(searchTerm = "") {
     tbody.appendChild(row)
   })
 }
-
-
 
   // Adicionando novo método para criar linha da tabela de status
   createTrainingStatusRow(item) {
