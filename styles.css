@@ -1539,3 +1539,18 @@ body {
 .inline-actions .btn-cancel:hover {
   background: #c82333;
 }
+
+.data-table select.status-select {
+  padding: 6px 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-color);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.data-table select.status-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}

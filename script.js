@@ -85,13 +85,18 @@ document.querySelectorAll(".stat-card.clickable").forEach(card => {
     const status = card.dataset.status
     this.simpleTrainingStatusView = true
 
-    // Mostrar seção de novo treinamento em vez da tabela de status
-    this.showOnlySection("newTrainingSection", "treinamento")
+    // Guarda o filtro de status no select da tabela
+    const filterSelect = document.getElementById("filterTrainingStatusTable")
+    if (filterSelect) filterSelect.value = status
 
-    // Aplicar filtro automático no campo "filterTrainingStatus" (se ainda quiser)
-    this.applyFilters("training", status)
+    // Mostrar a TABELA de status no modo simplificado ✅
+    this.showOnlySection("trainingStatusSection", "treinamento")
+
+    // Renderizar tabela já no formato reduzido
+    this.renderTrainingStatusTable()
   })
 })
+
 
 // Clique no botão "Ver Tabela de Status" → modo completo
 document.getElementById("viewTrainingStatusBtn").addEventListener("click", () => {
@@ -923,22 +928,20 @@ async deleteItem(type, id) {
     <td>${item.carteira}</td>
     <td>${item.dataAdicionado || ""}</td>
     <td>
-      <select id="editStatus">
-        ${this.customStatus
-          .map(s => `<option value="${s}" ${item.status === s ? "selected" : ""}>${s}</option>`)
-          .join("")}
+      <select class="status-select" data-id="${item.id}">
+        <option value="Aplicado" ${item.status === "Aplicado" ? "selected" : ""}>Aplicado</option>
+        <option value="Pendente" ${item.status === "Pendente" ? "selected" : ""}>Pendente</option>
+        <option value="Não Aplicado" ${item.status === "Não Aplicado" ? "selected" : ""}>Não Aplicado</option>
       </select>
     </td>
-    <td class="inline-actions">
-      <button class="btn btn-save" onclick="system.saveInlineEdit('trainingStatus', '${item.id}')">
-        <i class="fas fa-save"></i> Salvar
-      </button>
-      <button class="btn btn-cancel" onclick="system.cancelInlineEdit('trainingStatus')">
-        <i class="fas fa-times"></i> Cancelar
+    <td class="admin-only">
+      <button class="btn btn-sm btn-danger" onclick="system.deleteItem('trainingStatus', '${item.id}')">
+        <i class="fas fa-trash"></i>
       </button>
     </td>
   `;
   break;
+
 
 
     case "desligamentos":
