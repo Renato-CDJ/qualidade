@@ -419,15 +419,16 @@ document.getElementById("searchTrainingStatusTable")?.addEventListener("input", 
 }
 
   updateCarteiraSelects() {
-    const selects = [
-      "carteiraSelect",
-      "filterCarteira",
-      "editCarteira",
-      "filterTrainedCarteira",
-      "filterDesligamentosCarteira",
-      "desligamentoCarteira",
-      "trackingCarteira",
-    ]
+  const selects = [
+    "carteiraSelect",
+    "filterCarteira",
+    "editCarteira",
+    "filterTrainedCarteira",
+    "filterDesligamentosCarteira",
+    "desligamentoCarteira", // esta sobrando
+    "trackingCarteira",
+    "desligCarteira" // <-- ADICIONE ESTA LINHA
+  ]
 
     selects.forEach((selectId) => {
       const select = document.getElementById(selectId)

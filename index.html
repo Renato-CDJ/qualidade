@@ -841,33 +841,38 @@
                     </table>
                 </div>
 
-                             <!-- Formulário de Novo Desligamento -->
+                    <!-- Formulário de Novo Desligamento -->
                     <form id="addDesligamentoForm" class="form-container admin-only">
                     <div class="form-row">
                         <input type="text" id="desligOperador" placeholder="Nome do Operador" required>
+
+                        <!-- Select de carteira dinâmico -->
                         <select id="desligCarteira" required>
-                            <option value="">Selecione a Carteira</option>
-                            <option value="Caixa">Caixa</option>
-                            <option value="Carrefour">Carrefour</option>
+                        <option value="">Selecione a Carteira</option>
+                        <!-- Opções virão do Firestore -->
                         </select>
+
                         <input type="date" id="desligAdmissao" required>
                         <input type="number" id="desligDias" placeholder="Dias na Empresa" required>
                     </div>
+
                     <div class="form-row">
                         <input type="text" id="desligMotivo" placeholder="Motivo do Desligamento" required>
+
                         <select id="desligStatus" required>
-                            <option value="">Selecione o Status</option>
-                            <option value="Com Aviso Prévio">Com Aviso Prévio</option>
-                            <option value="Sem Aviso Prévio">Sem Aviso Prévio</option>
+                        <option value="">Selecione o Status</option>
+                        <option value="Com Aviso Prévio">Com Aviso Prévio</option>
+                        <option value="Sem Aviso Prévio">Sem Aviso Prévio</option>
                         </select>
+
                         <input type="date" id="desligData" required>
                         <input type="text" id="desligAgencia" placeholder="Agência" required>
+
                         <button type="submit" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Adicionar Desligamento
                         </button>
                     </div>
-                </form>
-
+                    </form>
             </div>
         </div>
     </div>
