@@ -513,7 +513,7 @@
         <i class="fas fa-check-circle"></i>
         <div class="stat-info">
           <span class="stat-number" id="concluidasSolicitacoes">0</span>
-          <span class="stat-label">Concluídas</span>
+          <span class="stat-label">Aplicadas</span>
         </div>
       </div>
     </div>
@@ -547,23 +547,23 @@
         <select id="filterSolicitacoesStatus">
           <option value="">Todos os Status</option>
           <option value="Pendente">Pendente</option>
-          <option value="Concluída">Concluída</option>
+          <option value="Aplicado">Aplicado</option>
         </select>
       </div>
     </div>
     <div class="table-container">
       <table id="solicitacoesTable" class="data-table">
         <thead>
-            <tr>
-                <th>Gestor</th>
-                <th>Carteira</th>
-                <th>Operador</th>
-                <th>Responsável</th>
-                <th>Sobre</th>
-                <th>Data da Solicitação</th>
-                <th>Status</th>
-                <th class="admin-only">Ações</th>
-            </tr>
+          <tr>
+            <th>Gestor</th>
+            <th>Carteira</th>
+            <th>Operadores</th>
+            <th>Responsável</th>
+            <th>Sobre</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th class="admin-only">Ações</th>
+          </tr>
         </thead>
         <tbody>
           <!-- Preenchido via JS -->
@@ -574,23 +574,23 @@
 
   <!-- Formulário -->
   <form id="addSolicitacaoForm" class="form-container admin-only">
-  <div class="form-row">
-    <input type="text" id="solicitacaoGestor" placeholder="Nome do Gestor" required>
-    <select id="solicitacaoCarteira" required>
-      <option value="">Selecione a Carteira</option>
-    </select>
-    <input type="text" id="solicitacaoOperador" placeholder="Operadores (separe por vírgula)" required>
-    <input type="text" id="solicitacaoResponsavel" placeholder="Responsável pela Solicitação" required>
-    <input type="text" id="solicitacaoSobre" placeholder="Sobre a Solicitação" required>
-    <select id="solicitacaoStatus" required>
-      <option value="Pendente">Pendente</option>
-      <option value="Concluída">Concluída</option>
-    </select>
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-plus"></i> Adicionar Solicitação
-    </button>
-  </div>
-</form>
+    <div class="form-row">
+      <input type="text" id="solicitacaoGestor" placeholder="Nome do Gestor" required>
+      <select id="solicitacaoCarteira" required>
+        <option value="">Selecione a Carteira</option>
+      </select>
+      <input type="text" id="solicitacaoOperador" placeholder="Operadores (separe por vírgula)" required>
+      <input type="text" id="solicitacaoResponsavel" placeholder="Responsável pela Solicitação" required>
+      <input type="text" id="solicitacaoSobre" placeholder="Sobre a Solicitação" required>
+      <select id="solicitacaoStatus" required>
+        <option value="Pendente">Pendente</option>
+        <option value="Aplicado">Aplicado</option>
+      </select>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Adicionar Solicitação
+      </button>
+    </div>
+  </form>
 </div>
 
 
