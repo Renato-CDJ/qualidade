@@ -534,24 +534,38 @@ document.getElementById("searchTrainingStatusTable")?.addEventListener("input", 
   switchTab(tabName) {
   const tabMap = {
     treinamento: "training",
+    solicitacoes: "solicitacoes",   // ✅ nova aba
     treinados: "trained",
     desligamentos: "desligamentos"
-  }
-  const normalizedTab = tabMap[tabName] || tabName
+  };
+  const normalizedTab = tabMap[tabName] || tabName;
 
   // Atualizar botões
-  document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"))
-  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active")
+  document.querySelectorAll(".tab-btn").forEach((btn) =>
+    btn.classList.remove("active")
+  );
+  document.querySelector(`[data-tab="${tabName}"]`)?.classList.add("active");
 
   // Atualizar conteúdo
-  document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"))
-  document.getElementById(tabName).classList.add("active")
+  document.querySelectorAll(".tab-content").forEach((content) => {
+    content.classList.remove("active");
+    content.classList.add("hidden");
+  });
 
-  // Renderizar tabela da aba ativa
-  this.renderTable(normalizedTab)
-  this.updateCharts()
+  const activeTab = document.getElementById(tabName);
+  if (activeTab) {
+    activeTab.classList.add("active");
+    activeTab.classList.remove("hidden"); // garante que aparece
+  }
+
+  // Renderizar tabela apenas se não for "solicitacoes"
+  if (normalizedTab === "solicitacoes") {
+    // chama o sistema específico de solicitações
+    window.solicitacoesSystem?.renderTable();
+  } else {
+    this.renderTable?.(normalizedTab);
+  }
 }
-
 
   showOnlySection(sectionId, tabName = "treinamento") {
   // Esconde a visão geral da aba ativa
@@ -1914,7 +1928,7 @@ async saveEdit() {
                         <select id="editStatus">
                             <option value="Aviso Prévio" ${item.status === "Aviso Prévio" ? "selected" : ""}>Aviso Prévio</option>
                             <option value="Desligado" ${item.status === "Desligado" ? "selected" : ""}>Desligado</option>
-                            <option value="Processando" ${item.status === "Processando" ? "selected" : ""}>Processando</option>
+                            
                         </select>
                         <input type="date" id="editDataDesligamento" value="${item.dataDesligamento}">
                         <select id="editAgencia">

@@ -61,6 +61,10 @@
                 <i class="fas fa-chalkboard-teacher"></i>
                 Treinamento
             </button>
+            <button class="tab-btn" data-tab="solicitacoes">
+                <i class="fas fa-tasks"></i>
+                Solicitações
+            </button>
             <button class="tab-btn" data-tab="treinados">
                 <i class="fas fa-user-check"></i>
                 Treinados
@@ -462,6 +466,133 @@
                 </div>
             </div>
         </div>
+
+        <!-- Aba Solicitações -->
+<div id="solicitacoes" class="tab-content hidden">
+  <div class="content-header">
+    <h2><i class="fas fa-tasks"></i> Solicitações de Calibragem</h2>
+    <div class="action-buttons">
+      <button id="refreshSolicitacoesBtn" class="btn btn-success">
+        <i class="fas fa-sync-alt"></i> Atualizar
+      </button>
+      <button id="backToSolicitacoesMainBtn" class="btn btn-secondary hidden">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+      <button id="viewSolicitacoesTableBtn" class="btn btn-info">
+        <i class="fas fa-table"></i> Ver Tabela
+      </button>
+      <button id="importSolicitacoesBtn" class="btn btn-outline admin-only">
+        <i class="fas fa-file-excel"></i> Importar Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Visão Geral -->
+  <div id="solicitacoesMainOverviewSection" class="section">
+    <div class="section-header">
+      <h3>Status das Solicitações</h3>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="training-stats">
+      <div class="stat-card">
+        <i class="fas fa-list"></i>
+        <div class="stat-info">
+          <span class="stat-number" id="totalSolicitacoes">0</span>
+          <span class="stat-label">Total de Solicitações</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-hourglass-half"></i>
+        <div class="stat-info">
+          <span class="stat-number" id="pendentesSolicitacoes">0</span>
+          <span class="stat-label">Pendentes</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-check-circle"></i>
+        <div class="stat-info">
+          <span class="stat-number" id="concluidasSolicitacoes">0</span>
+          <span class="stat-label">Concluídas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="charts-header">
+      <h3>Análise de Solicitações</h3>
+      <button id="toggleSolicitacoesCharts" class="btn btn-sm btn-outline">
+        <i class="fas fa-eye-slash"></i> Ocultar Gráficos
+      </button>
+    </div>
+    <div id="solicitacoesChartsContainer" class="charts-container">
+      <div class="chart-card">
+        <h4>Status das Solicitações</h4>
+        <canvas id="solicitacoesStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div id="solicitacoesTableSection" class="section hidden">
+    <div class="section-header">
+      <h3>Tabela de Solicitações</h3>
+    </div>
+    <div class="search-filter-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchSolicitacoes" placeholder="Pesquisar gestor...">
+      </div>
+      <div class="filter-controls">
+        <select id="filterSolicitacoesStatus">
+          <option value="">Todos os Status</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Concluída">Concluída</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-container">
+      <table id="solicitacoesTable" class="data-table">
+        <thead>
+            <tr>
+                <th>Gestor</th>
+                <th>Carteira</th>
+                <th>Operador</th>
+                <th>Responsável</th>
+                <th>Sobre</th>
+                <th>Data da Solicitação</th>
+                <th>Status</th>
+                <th class="admin-only">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+          <!-- Preenchido via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Formulário -->
+  <form id="addSolicitacaoForm" class="form-container admin-only">
+  <div class="form-row">
+    <input type="text" id="solicitacaoGestor" placeholder="Nome do Gestor" required>
+    <select id="solicitacaoCarteira" required>
+      <option value="">Selecione a Carteira</option>
+    </select>
+    <input type="text" id="solicitacaoOperador" placeholder="Operadores (separe por vírgula)" required>
+    <input type="text" id="solicitacaoResponsavel" placeholder="Responsável pela Solicitação" required>
+    <input type="text" id="solicitacaoSobre" placeholder="Sobre a Solicitação" required>
+    <select id="solicitacaoStatus" required>
+      <option value="Pendente">Pendente</option>
+      <option value="Concluída">Concluída</option>
+    </select>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Adicionar Solicitação
+    </button>
+  </div>
+</form>
+</div>
+
 
         <!-- Aba Treinados -->
         <div id="treinados" class="tab-content">
@@ -898,5 +1029,6 @@
 
     <!-- Modificando script para ser módulo -->
     <script type="module" src="script.js"></script>
+    <script type="module" src="solicitacoes.js"></script>
 </body>
 </html>
