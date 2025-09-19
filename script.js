@@ -2844,86 +2844,53 @@ onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
     localStorage.setItem("customStatus", JSON.stringify(this.customStatus))
   }
 
-  handleExcelImport(event, type) {
-    if (!this.isAdmin) {
-      this.showNotification("Acesso negado. Apenas administradores podem importar dados.", "error")
-      return
-    }
+  async handleExcelImport(e, type) {
+  const file = e.target.files[0]
+  if (!file) return
 
-    const file = event.target.files[0]
-    if (!file) return
+  const reader = new FileReader()
+  reader.onload = async (evt) => {
+    const data = new Uint8Array(evt.target.result)
+    const workbook = XLSX.read(data, { type: "array" })
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" })
 
-    // Validate file type
-    const validTypes = [
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "application/vnd.ms-excel", // .xls
-      "text/csv", // .csv
-    ]
+    console.log("Linhas importadas:", jsonData) // 🔍 debug
 
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
-      this.showNotification("Formato de arquivo inválido. Use apenas arquivos Excel (.xlsx, .xls) ou CSV.", "error")
-      event.target.value = "" // Clear the input
-      return
-    }
+    for (const row of jsonData) {
+  // Normaliza as chaves para evitar erro de maiúscula/minúscula
+  const colaborador = row.colaborador || row.Colaborador || ""
+  const turno = row.turno || row.Turno || ""
+  const carteira = row.carteira || row.Carteira || ""
+  
+  let dataExcel = row.data || row.Data || ""
+  let dataAdicionado = ""
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024 // 5MB in bytes
-    if (file.size > maxSize) {
-      this.showNotification("Arquivo muito grande. O tamanho máximo é 5MB.", "error")
-      event.target.value = "" // Clear the input
-      return
-    }
-
-    // Show loading notification
-    this.showNotification("Processando arquivo Excel...", "info")
-
-    // Simulate Excel processing (in a real app, you'd use a library like SheetJS)
-    setTimeout(() => {
-      this.processExcelFile(file, type)
-      event.target.value = "" // Clear the input after processing
-    }, 1000)
+  // Converte número serial do Excel para data válida
+  if (typeof dataExcel === "number") {
+    const dateObj = new Date((dataExcel - 25569) * 86400 * 1000) // Excel → JS
+    dataAdicionado = dateObj.toLocaleDateString("pt-BR")
+  } else if (dataExcel) {
+    dataAdicionado = new Date(dataExcel).toLocaleDateString("pt-BR")
   }
 
-  processExcelFile(file, type) {
-    // This is a simulation of Excel processing
-    // In a real application, you would use a library like SheetJS (xlsx) to parse the Excel file
+  const training = { colaborador, turno, carteira, dataAdicionado }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
+  if (!colaborador) {
+    console.warn("Linha ignorada (sem colaborador):", row)
+    continue
+  }
       try {
-        // Simulate successful import with sample data
-        const sampleData = this.generateSampleImportData(type)
-
-        // Add the sample data to the appropriate dataset
-        sampleData.forEach((item) => {
-          this.data[type].push({
-            ...item,
-            id: Date.now() + Math.random(),
-            dataAdicionado: new Date().toLocaleDateString("pt-BR"),
-          })
-        })
-
-        // Save and update UI
-        this.saveData(type)
-        this.renderTable(type)
-        this.updateCharts()
-        this.updateTrainingStats()
-        this.updateTrainedStats()
-        this.updateDesligadosStats()
-
-        this.showNotification(`${sampleData.length} registros importados com sucesso!`, "success")
-      } catch (error) {
-        console.error("Erro ao processar arquivo:", error)
-        this.showNotification("Erro ao processar o arquivo. Verifique o formato e tente novamente.", "error")
+    await addDoc(collection(db, type), training)
+    console.log("Salvo:", training)
+  } catch (err) {
+    console.error("Erro ao salvar linha:", row, err)
       }
     }
-
-    reader.onerror = () => {
-      this.showNotification("Erro ao ler o arquivo.", "error")
-    }
-
-    reader.readAsArrayBuffer(file)
   }
+  reader.readAsArrayBuffer(file)
+}
+
 
   generateSampleImportData(type) {
     // Generate sample data based on type for demonstration
