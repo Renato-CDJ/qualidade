@@ -1554,3 +1554,52 @@ body {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
 }
+
+/* Ocultar apenas os controles da aba Treinamento */
+#treinamento .training-table-container {
+    display: none !important;
+}
+
+/* Ajustar layout da aba Treinamento sem a seção Controles */
+#treinamento .training-status-layout {
+    grid-template-columns: 1fr !important; /* apenas 1 coluna */
+}
+
+/* Expandir e modernizar o container de estatísticas */
+#treinamento .training-stats-container {
+    background: var(--surface-color);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+#treinamento .training-stats-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
+
+/* Melhorar os títulos */
+#treinamento .training-stats-container h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 8px;
+}
+
+/* Ajuste dos cards de estatísticas */
+#treinamento .training-stats .stat-card {
+    border-left: 5px solid var(--primary-color);
+    border-radius: 12px;
+    background: var(--background-color);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#treinamento .training-stats .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+}

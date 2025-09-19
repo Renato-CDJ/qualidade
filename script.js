@@ -2156,8 +2156,11 @@ renderTrainingStatusTable(searchTerm = "") {
   if (this.simpleTrainingStatusView) {
     thead.innerHTML = `
       <th>Colaborador</th>
+      <th>Turno</th>
       <th>Carteira</th>
-      <th>Status</th>
+      <th>Data Adicionado</th>
+      <th>Status do Treinamento</th>
+      <th class="admin-only">Ações</th>
     `
   } else {
     thead.innerHTML = `
