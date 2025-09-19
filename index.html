@@ -841,35 +841,33 @@
                     </table>
                 </div>
 
-                <form id="addDesligamentoForm" class="form-container admin-only">
+                             <!-- Formulário de Novo Desligamento -->
+                    <form id="addDesligamentoForm" class="form-container admin-only">
                     <div class="form-row">
-                        <input type="text" id="desligamentoOperador" placeholder="Nome do Operador" required>
-                        <select id="desligamentoCarteira" required>
-                            <option value="">Carteira</option>
+                        <input type="text" id="desligOperador" placeholder="Nome do Operador" required>
+                        <select id="desligCarteira" required>
+                            <option value="">Selecione a Carteira</option>
                             <option value="Caixa">Caixa</option>
                             <option value="Carrefour">Carrefour</option>
                         </select>
-                        <input type="date" id="desligamentoAdmissao" required>
-                        <input type="text" id="desligamentoMotivo" placeholder="Motivo" required>
+                        <input type="date" id="desligAdmissao" required>
+                        <input type="number" id="desligDias" placeholder="Dias na Empresa" required>
                     </div>
                     <div class="form-row">
-                        <select id="desligamentoStatus" required>
-                            <option value="">Status</option>
-                            <option value="Aviso Prévio">Aviso Prévio</option>
+                        <input type="text" id="desligMotivo" placeholder="Motivo do Desligamento" required>
+                        <select id="desligStatus" required>
+                            <option value="">Selecione o Status</option>
+                            <option value="Com Aviso Prévio">Com Aviso Prévio</option>
                             <option value="Sem Aviso Prévio">Sem Aviso Prévio</option>
                         </select>
-                        <input type="date" id="desligamentoData" required>
-                        <select id="desligamentoAgencia" required>
-                            <option value="">Agência</option>
-                            <option value="Sim">Sim</option>
-                            <option value="Não">Não</option>
-                        </select>
+                        <input type="date" id="desligData" required>
+                        <input type="text" id="desligAgencia" placeholder="Agência" required>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                            Adicionar
+                        <i class="fas fa-plus"></i> Adicionar Desligamento
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
