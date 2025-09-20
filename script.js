@@ -17,6 +17,8 @@ class TrainingSystem {
     this.hiddenCarteiras = new Set() // Track hidden carteiras
     this.customStatus = JSON.parse(localStorage.getItem("customStatus") || '["Ativo", "Desligado", "Remanejado"]')
     this.simpleTrainingStatusView = false
+    this.globalMonthFilter = null // começa sem filtro
+
 
 
     // Agora os dados começam vazios e serão carregados do Firestore
@@ -78,6 +80,18 @@ class TrainingSystem {
       btn.addEventListener("click", (e) => this.switchTab(e.currentTarget.dataset.tab))
 
     })
+
+    document.getElementById("globalMonthFilter").addEventListener("change", (e) => {
+  this.globalMonthFilter = e.target.value // ex: "2025-09"
+  this.refreshData()
+})
+
+document.getElementById("clearGlobalFilter").addEventListener("click", () => {
+  this.globalMonthFilter = null
+  document.getElementById("globalMonthFilter").value = ""
+  this.refreshData()
+})
+
 
     // Clique nos cards de estatísticas (Aplicados, Pendentes, Não Aplicados)
 document.querySelectorAll(".stat-card.clickable").forEach(card => {
@@ -1176,92 +1190,120 @@ cancelInlineEdit(type) {
 }
 
 
-  // Busca e Filtros
-  getFilteredData(type) {
-    const data = [...this.data[type]]
-    return data
+// Busca e Filtros
+getFilteredData(type) {
+  let data = [...this.data[type]]
+
+  // Aplica o filtro global por mês se existir
+  if (this.globalMonthFilter) {
+    const [year, month] = this.globalMonthFilter.split("-").map(Number)
+
+    data = data.filter((item) => {
+      // tenta achar a data do item (cada tipo tem campo diferente)
+      const dataCampo =
+        item.dataAdicionado ||
+        item.dataTreinamento ||
+        item.dataDesligamento ||
+        item.data
+
+      if (!dataCampo) return false
+
+      const d = new Date(dataCampo)
+      return d.getFullYear() === year && (d.getMonth() + 1) === month
+    })
   }
 
-  filterTable(type, searchTerm) {
-    const tableId = this.getTableId(type)
-    const tbody = document.querySelector(`#${tableId} tbody`)
+  return data
+}
 
-    if (!tbody) return
+filterTable(type, searchTerm) {
+  const tableId = this.getTableId(type)
+  const tbody = document.querySelector(`#${tableId} tbody`)
 
-    tbody.innerHTML = ""
+  if (!tbody) return
 
-    const filteredData = this.data[type].filter((item) => {
-      for (const key in item) {
-        if (typeof item[key] === "string" && item[key].toLowerCase().includes(searchTerm.toLowerCase())) {
-          return true
-        }
+  tbody.innerHTML = ""
+
+  // Usa getFilteredData para respeitar também o filtro global de mês
+  const filteredData = this.getFilteredData(type).filter((item) => {
+    for (const key in item) {
+      if (
+        typeof item[key] === "string" &&
+        item[key].toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+        return true
       }
-      return false
-    })
-
-    filteredData.forEach((item) => {
-      const row = this.createTableRow(type, item)
-      tbody.appendChild(row)
-    })
-  }
-
-  applyFilters(type) {
-    const tableId = this.getTableId(type)
-    const tbody = document.querySelector(`#${tableId} tbody`)
-    if (!tbody) return
-
-    tbody.innerHTML = ""
-
-    let filteredData = [...this.data[type]]
-
-    switch (type) {
-      case "training":
-        const turnoFilter = document.getElementById("filterTurno").value
-        const carteiraFilter = document.getElementById("filterCarteira").value
-
-        filteredData = filteredData.filter((item) => {
-          if (turnoFilter && item.turno !== turnoFilter) return false
-          if (carteiraFilter && item.carteira !== carteiraFilter) return false
-          return true
-        })
-        break
-      case "tracking":
-        const turnoTrackingFilter = document.getElementById("filterTrackingTurno").value
-        const statusTrackingFilter = document.getElementById("filterTrackingStatus").value
-
-        filteredData = filteredData.filter((item) => {
-          if (turnoTrackingFilter && item.turno !== turnoTrackingFilter) return false
-          if (statusTrackingFilter && item.status !== statusTrackingFilter) return false
-          return true
-        })
-        break
-      case "trained":
-        const turnoTrainedFilter = document.getElementById("filterTrainedTurno").value
-        const supervisorTrainedFilter = document.getElementById("filterSupervisor").value.toLowerCase()
-
-        filteredData = filteredData.filter((item) => {
-          if (turnoTrainedFilter && item.turno !== turnoTrainedFilter) return false
-          if (supervisorTrainedFilter && !item.supervisor.toLowerCase().includes(supervisorTrainedFilter)) return false
-          return true
-        })
-        break
-      case "desligamentos":
-        const carteiraDesligamentosFilter = document.getElementById("filterDesligamentosCarteira").value
-        const statusDesligamentosFilter = document.getElementById("filterDesligamentosStatus").value
-
-        filteredData = filteredData.filter((item) => {
-          if (carteiraDesligamentosFilter && item.carteira !== carteiraDesligamentosFilter) return false
-          if (statusDesligamentosFilter && item.status !== statusDesligamentosFilter) return false
-          return true
-        })
-        break
     }
+    return false
+  })
 
-    filteredData.forEach((item) => {
-      const row = this.createTableRow(type, item)
-      tbody.appendChild(row)
-    })
+  filteredData.forEach((item) => {
+    const row = this.createTableRow(type, item)
+    tbody.appendChild(row)
+  })
+}
+
+applyFilters(type) {
+  const tableId = this.getTableId(type)
+  const tbody = document.querySelector(`#${tableId} tbody`)
+  if (!tbody) return
+
+  tbody.innerHTML = ""
+
+  // Sempre começa pelos dados filtrados globalmente
+  let filteredData = this.getFilteredData(type)
+
+  switch (type) {
+    case "training":
+      const turnoFilter = document.getElementById("filterTurno").value
+      const carteiraFilter = document.getElementById("filterCarteira").value
+
+      filteredData = filteredData.filter((item) => {
+        if (turnoFilter && item.turno !== turnoFilter) return false
+        if (carteiraFilter && item.carteira !== carteiraFilter) return false
+        return true
+      })
+      break
+
+    case "tracking":
+      const turnoTrackingFilter = document.getElementById("filterTrackingTurno").value
+      const statusTrackingFilter = document.getElementById("filterTrackingStatus").value
+
+      filteredData = filteredData.filter((item) => {
+        if (turnoTrackingFilter && item.turno !== turnoTrackingFilter) return false
+        if (statusTrackingFilter && item.status !== statusTrackingFilter) return false
+        return true
+      })
+      break
+
+    case "trained":
+      const turnoTrainedFilter = document.getElementById("filterTrainedTurno").value
+      const supervisorTrainedFilter = document.getElementById("filterSupervisor").value.toLowerCase()
+
+      filteredData = filteredData.filter((item) => {
+        if (turnoTrainedFilter && item.turno !== turnoTrainedFilter) return false
+        if (supervisorTrainedFilter && !item.supervisor.toLowerCase().includes(supervisorTrainedFilter)) return false
+        return true
+      })
+      break
+
+    case "desligamentos":
+      const carteiraDesligamentosFilter = document.getElementById("filterDesligamentosCarteira").value
+      const statusDesligamentosFilter = document.getElementById("filterDesligamentosStatus").value
+
+      filteredData = filteredData.filter((item) => {
+        if (carteiraDesligamentosFilter && item.carteira !== carteiraDesligamentosFilter) return false
+        if (statusDesligamentosFilter && item.status !== statusDesligamentosFilter) return false
+        return true
+      })
+      break
   }
+
+  filteredData.forEach((item) => {
+    const row = this.createTableRow(type, item)
+    tbody.appendChild(row)
+  })
+}
 
   // Gráficos
   updateCharts() {

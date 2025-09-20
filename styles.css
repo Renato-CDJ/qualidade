@@ -1603,3 +1603,15 @@ body {
     transform: translateY(-3px);
     box-shadow: var(--shadow-hover);
 }
+
+.global-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 30px;
+}
+.global-filter-bar label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
