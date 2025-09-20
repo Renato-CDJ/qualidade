@@ -1,11 +1,12 @@
 import { db } from "./firebase.js"
 import { 
   collection, addDoc, onSnapshot, serverTimestamp,
-  deleteDoc, updateDoc, doc 
+  deleteDoc, updateDoc, doc, query, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
 let quadros = []
 let deleteId = null
+let quadroSelecionado = null
 
 document.addEventListener("DOMContentLoaded", () => {
   const quadroForm = document.getElementById("quadroForm")
@@ -29,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         await addDoc(collection(db, "quadro"), {
+          tipo: quadroSelecionado,
           data,
           turno,
           total,
@@ -46,18 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
-
-  // 👉 Listener em tempo real
-  onSnapshot(collection(db, "quadro"), (snapshot) => {
-    quadros = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
-
-    renderStats()
-    renderTables()
-    renderCharts()
-  })
 
   // 👉 Formulário de edição
   if (editForm) {
@@ -107,6 +97,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })
 
+/* ========= SELEÇÃO DE QUADRO ========= */
+window.selecionarQuadro = (tipo) => {
+  quadroSelecionado = tipo
+  document.getElementById("quadroTipo").value = tipo
+  document.getElementById("quadroTitle").textContent = `Quadro Diário - ${tipo}`
+  document.getElementById("quadroContent").classList.remove("hidden")
+
+  // Estilizar botões
+  document.getElementById("btnCaixa").classList.remove("active")
+  document.getElementById("btnCobranca").classList.remove("active")
+  if (tipo === "Caixa") {
+    document.getElementById("btnCaixa").classList.add("active")
+  } else {
+    document.getElementById("btnCobranca").classList.add("active")
+  }
+
+  carregarQuadros()
+}
+
+function carregarQuadros() {
+  if (!quadroSelecionado) return
+
+  onSnapshot(
+    query(collection(db, "quadro"), where("tipo", "==", quadroSelecionado)),
+    (snapshot) => {
+      quadros = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      renderStats()
+      renderTables()
+      renderCharts()
+    }
+  )
+}
+
 /* ========= VISÃO GERAL ========= */
 function renderStats() {
   const statsContainer = document.getElementById("quadroStats")
@@ -155,7 +181,6 @@ function renderTables() {
   const container = document.getElementById("quadroTables")
   container.innerHTML = ""
 
-  // histórico em ordem decrescente (mais recente primeiro)
   quadros
     .sort((a,b) => (a.data < b.data ? 1 : -1))
     .forEach(q => {
@@ -217,6 +242,14 @@ function renderCharts() {
     data: {
       labels: ["Manhã", "Tarde"],
       datasets: [{ data: [totalManha, totalTarde], backgroundColor: ["#36a2eb", "#ff6384"] }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: `Distribuição por Turno - ${quadroSelecionado}`
+        }
+      }
     }
   })
 
@@ -228,15 +261,56 @@ function renderCharts() {
   })
 
   if (quadroStatusChart) quadroStatusChart.destroy()
-  quadroStatusChart = new Chart(ctxStatus, {
-    type: "bar",
-    data: {
-      labels: ["Férias", "Afastamento", "INSS"],
-      datasets: [{
-        label: "Quantidade",
-        data: [totalizador.ferias, totalizador.afastamento, totalizador.inss],
-        backgroundColor: ["#ffcd56", "#4bc0c0", "#9966ff"]
-      }]
+
+const valores = [totalizador.ferias, totalizador.afastamento, totalizador.inss]
+const total = valores.reduce((acc, v) => acc + v, 0)
+const percentuais = valores.map(v => total > 0 ? ((v / total) * 100).toFixed(1) : 0)
+
+quadroStatusChart = new Chart(ctxStatus, {
+  type: "bar",
+  data: {
+    labels: ["Férias", "Afastamento", "INSS"],
+    datasets: [{
+      label: `Percentual - ${quadroSelecionado}`,
+      data: percentuais,
+      backgroundColor: ["#ffce56", "#4bc0c0", "#9966ff"]
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const index = context.dataIndex
+            const valorAbsoluto = valores[index]
+            const percentual = percentuais[index]
+            return `${percentual}% (${valorAbsoluto} colaboradores)`
+          }
+        }
+      },
+      legend: { display: false },
+      title: {
+        display: true,
+        text: `Férias / Afastamento / INSS - ${quadroSelecionado}`
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + "%"
+          }
+        },
+        title: {
+          display: true,
+          text: "Percentual (%)"
+        }
+      }
     }
-  })
+  }
+})
+
 }

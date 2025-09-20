@@ -23,12 +23,13 @@ class TrainingSystem {
 
     // Agora os dados começam vazios e serão carregados do Firestore
     this.data = {
-      training: [],
-      tracking: [],
-      trained: [],
-      desligamentos: [],
-      trainingStatus: [],
-    }
+  training: [],
+  tracking: [],
+  trained: [],
+  desligamentos: [],
+  trainingStatus: [],
+  solicitacoes: []   // ✅ adicionado
+}
 
     this.init()
   }
@@ -545,12 +546,12 @@ document.getElementById("searchTrainingStatusTable")?.addEventListener("input", 
 
   switchTab(tabName) {
   const tabMap = {
-    treinamento: "training",
-    solicitacoes: "solicitacoes",
-    treinados: "trained",
-    desligamentos: "desligamentos",
-    quadro: "quadro"   // ✅ nova aba
-  };
+  treinamento: "training",
+  solicitacoes: "solicitacoes",
+  treinados: "trained",
+  desligamentos: "desligamentos"
+};
+
   const normalizedTab = tabMap[tabName] || tabName;
 
   // Esconde todas as abas
@@ -570,8 +571,8 @@ document.getElementById("searchTrainingStatusTable")?.addEventListener("input", 
   });
   document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add("active");
 
-  // Renderiza tabelas SOMENTE se não for a aba Quadro
-  if (normalizedTab !== "quadro") {
+  // Renderiza tabelas só para abas que realmente existem em this.data
+  if (["training", "trained", "desligamentos", "trainingStatus"].includes(normalizedTab)) {
     this.renderTable(normalizedTab);
   }
 }

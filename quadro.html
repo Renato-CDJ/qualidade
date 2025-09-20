@@ -14,104 +14,108 @@
 
   <!-- Firebase + Lógica -->
   <script type="module" src="quadro.js"></script>
+
+  <style>
+    /* Botões de seleção do quadro */
+    .quadro-selector {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .quadro-selector .btn {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .quadro-selector .btn.active {
+      background-color: var(--primary-color, #007bff);
+      color: #fff;
+      border: none;
+    }
+  </style>
 </head>
 <body>
   <main class="container">
-    <!-- Cabeçalho -->
-    <section class="section">
-      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;">
-        <h3>Quadro Diário</h3>
-        <a href="index.html" class="btn btn-secondary">
-          <i class="fas fa-arrow-left"></i> Voltar
-        </a>
-      </div>
-    </section>
-
-    <!-- Estatísticas -->
-    <section class="stats-grid" id="quadroStats">
-      <!-- Cards serão renderizados via JS -->
-    </section>
-
-    <!-- Formulário -->
+    <!-- Seleção de Quadro -->
     <section class="section">
       <div class="section-header">
-        <h3>Registrar Atualização</h3>
+        <h3>Selecionar Quadro</h3>
       </div>
-      <form id="quadroForm" class="form-container">
-        <div class="form-row">
-          <input type="date" id="quadroData" required>
-          <select id="quadroTurno" required>
-            <option value="">Selecione o turno</option>
-            <option value="Manhã">Manhã</option>
-            <option value="Tarde">Tarde</option>
-          </select>
-          <input type="number" id="quadroTotal" placeholder="Total" required>
-          <input type="number" id="quadroFerias" placeholder="Férias" required>
-          <input type="number" id="quadroDesaparecidos" placeholder="Desaparecidos" required>
-          <input type="number" id="quadroAfastamento" placeholder="Afastamento" required>
-          <input type="number" id="quadroINSS" placeholder="INSS" required>
-          <button type="submit" class="btn btn-primary">Adicionar</button>
-        </div>
-      </form>
+      <div class="quadro-selector">
+        <button id="btnCaixa" class="btn btn-secondary" onclick="selecionarQuadro('Caixa')">
+          <i class="fas fa-cash-register"></i> Quadro Caixa
+        </button>
+        <button id="btnCobranca" class="btn btn-secondary" onclick="selecionarQuadro('Cobranca')">
+          <i class="fas fa-phone"></i> Quadro Cobrança
+        </button>
+      </div>
     </section>
 
-    <!-- Histórico -->
-    <section class="section">
-      <div class="section-header">
-        <h3>Histórico do Quadro</h3>
-      </div>
-      <div id="quadroTables" class="table-container"></div>
-    </section>
+    <!-- Conteúdo do Quadro (dinâmico) -->
+    <div id="quadroContent" class="hidden">
+      <section class="section">
+        <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 id="quadroTitle">Quadro Diário</h3>
+          <a href="index.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </a>
+        </div>
+      </section>
 
-    <!-- Gráficos -->
-    <section class="section">
-      <div class="section-header">
-        <h3>Análises</h3>
-      </div>
-      <div class="charts-container">
-        <div class="chart-card">
-          <h4>Distribuição por Turno</h4>
-          <canvas id="quadroTurnoChart"></canvas>
+      <!-- Estatísticas -->
+      <section class="stats-grid" id="quadroStats"></section>
+
+      <!-- Formulário -->
+      <section class="section">
+        <div class="section-header">
+          <h3>Registrar Atualização</h3>
         </div>
-        <div class="chart-card">
-          <h4>Férias / Afastamento / INSS</h4>
-          <canvas id="quadroStatusChart"></canvas>
+        <form id="quadroForm" class="form-container">
+          <input type="hidden" id="quadroTipo"> <!-- Caixa ou Cobranca -->
+          <div class="form-row">
+            <input type="date" id="quadroData" required>
+            <select id="quadroTurno" required>
+              <option value="">Selecione o turno</option>
+              <option value="Manhã">Manhã</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+            <input type="number" id="quadroTotal" placeholder="Total" required>
+            <input type="number" id="quadroFerias" placeholder="Férias" required>
+            <input type="number" id="quadroDesaparecidos" placeholder="Desaparecidos" required>
+            <input type="number" id="quadroAfastamento" placeholder="Afastamento" required>
+            <input type="number" id="quadroINSS" placeholder="INSS" required>
+            <button type="submit" class="btn btn-primary">Adicionar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Histórico -->
+      <section class="section">
+        <div class="section-header">
+          <h3>Histórico do Quadro</h3>
         </div>
-      </div>
-    </section>
+        <div id="quadroTables" class="table-container"></div>
+      </section>
+
+      <!-- Gráficos -->
+      <section class="section">
+        <div class="section-header">
+          <h3>Análises</h3>
+        </div>
+        <div class="charts-container">
+          <div class="chart-card">
+            <h4>Distribuição por Turno</h4>
+            <canvas id="quadroTurnoChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>Férias / Afastamento / INSS</h4>
+            <canvas id="quadroStatusChart"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
-
-  <!-- Modal de Edição -->
-  <div id="editModal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Editar Quadro</h3>
-      <form id="editForm" class="form-container">
-        <input type="hidden" id="editId">
-        <div class="form-row">
-          <input type="number" id="editTotal" placeholder="Total" required>
-          <input type="number" id="editFerias" placeholder="Férias" required>
-          <input type="number" id="editDesaparecidos" placeholder="Desaparecidos" required>
-          <input type="number" id="editAfastamento" placeholder="Afastamento" required>
-          <input type="number" id="editInss" placeholder="INSS" required>
-        </div>
-        <div style="text-align:right;margin-top:10px;">
-          <button type="button" class="btn btn-secondary" onclick="fecharModal('editModal')">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal de Exclusão -->
-  <div id="deleteModal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Confirmar Exclusão</h3>
-      <p>Tem certeza que deseja excluir este registro?</p>
-      <div style="text-align:right;margin-top:10px;">
-        <button type="button" class="btn btn-secondary" onclick="fecharModal('deleteModal')">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
