@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDdLbmyvda93ixUTiGrmIVsFxpJuM_bMsg",
   authDomain: "qualidade-bab05.firebaseapp.com",
   projectId: "qualidade-bab05",
-  storageBucket: "qualidade-bab05.firebasestorage.app",
+  storageBucket: "qualidade-bab05.appspot.com",
   messagingSenderId: "319259616965",
   appId: "1:319259616965:web:c3f33efa498dfe3956f2ac",
   measurementId: "G-XFYGHTGXMW"

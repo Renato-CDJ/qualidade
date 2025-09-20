@@ -730,16 +730,16 @@ async addTraining(e) {
 
     // 2) Salva em "tracking"
     await addDoc(collection(db, "tracking"), {
-      ...training,
-      cpf: "",               // se não tiver no momento, deixa vazio
-      status: "Ativo"        // ou "Pendente", dependendo da regra que você quiser
-    });
+  ...training,
+  cpf: "",
+  status: "Ativo"
+});
 
-    // 3) Salva em "trainingStatus"
-    await addDoc(collection(db, "trainingStatus"), {
-      ...training,
-      status: "Pendente"
-    });
+await addDoc(collection(db, "trainingStatus"), {
+  ...training,
+  status: "Pendente"
+});
+
 
     this.showNotification("Treinamento salvo com sucesso!", "success");
     this.loadData(); // recarrega direto do Firestore
@@ -2476,7 +2476,7 @@ renderTrainingStatusTable(searchTerm = "") {
       .join("")
   }
 
-  // Carrega dados do Firestore
+// Carrega dados do Firestore
 loadData() {
   // Treinamentos
   onSnapshot(collection(db, "training"), (snapshot) => {
@@ -2507,14 +2507,10 @@ loadData() {
   })
 
   // Status dos treinamentos
-onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
-  this.data.trainingStatus = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data()
-  }))
-  this.renderTrainingStatusTable()
-})
-
+  onSnapshot(collection(db, "trainingStatus"), (snapshot) => {
+    this.data.trainingStatus = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    this.renderTrainingStatusTable()
+  })
 }
 
 
