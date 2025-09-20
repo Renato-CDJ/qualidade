@@ -849,18 +849,28 @@ async deleteItem(type, id) {
 
   // Renderização de Tabelas
   renderTable(type) {
-    const tableId = this.getTableId(type)
-    const tbody = document.querySelector(`#${tableId} tbody`)
-    if (!tbody) return
+  const tableId = this.getTableId(type)
+  const tbody = document.querySelector(`#${tableId} tbody`)
+  if (!tbody) return
 
-    tbody.innerHTML = ""
-    const data = this.getFilteredData(type)
+  tbody.innerHTML = ""
+  let data = this.getFilteredData(type)
 
-    data.forEach((item) => {
-      const row = this.createTableRow(type, item)
-      tbody.appendChild(row)
-    })
-  }
+  // 🔤 Ordena alfabeticamente por nome/colaborador/operador
+  data.sort((a, b) => {
+    const nameA =
+      (a.colaborador || a.nome || a.operador || "").toLowerCase()
+    const nameB =
+      (b.colaborador || b.nome || b.operador || "").toLowerCase()
+    return nameA.localeCompare(nameB, "pt-BR")
+  })
+
+  data.forEach((item) => {
+    const row = this.createTableRow(type, item)
+    tbody.appendChild(row)
+  })
+}
+
 
   renderAllTables() {
     this.renderTable("training")

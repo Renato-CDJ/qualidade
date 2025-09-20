@@ -1607,11 +1607,45 @@ body {
 .global-filter-bar {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   margin: 15px 30px;
+  font-size: 0.95rem;
 }
+
 .global-filter-bar label {
   font-weight: 600;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.global-filter-bar input[type="month"] {
+  padding: 6px 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--background-color);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.global-filter-bar input[type="month"]:hover {
+  border-color: var(--primary-color);
+}
+
+.global-filter-bar input[type="month"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.global-filter-bar .btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
