@@ -1,10 +1,20 @@
+import { db } from "./firebase.js"
+import { 
+  collection, addDoc, onSnapshot, serverTimestamp,
+  deleteDoc, updateDoc, doc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+
 let quadros = []
+let deleteId = null
 
 document.addEventListener("DOMContentLoaded", () => {
   const quadroForm = document.getElementById("quadroForm")
+  const editForm = document.getElementById("editForm")
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn")
 
+  // 👉 Adicionar novo registro
   if (quadroForm) {
-    quadroForm.addEventListener("submit", (e) => {
+    quadroForm.addEventListener("submit", async (e) => {
       e.preventDefault()
 
       const data = document.getElementById("quadroData").value
@@ -17,67 +27,192 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const ativos = total - (ferias + desaparecidos + afastamento + inss)
 
-      quadros.push({ data, turno, total, ferias, desaparecidos, afastamento, inss, ativos })
+      try {
+        await addDoc(collection(db, "quadro"), {
+          data,
+          turno,
+          total,
+          ferias,
+          desaparecidos,
+          afastamento,
+          inss,
+          ativos,
+          criadoEm: serverTimestamp()
+        })
+        quadroForm.reset()
+      } catch (err) {
+        console.error("Erro ao salvar quadro:", err)
+        alert("Erro ao salvar no Firestore")
+      }
+    })
+  }
 
-      renderTables()
-      renderCharts()
-      e.target.reset()
+  // 👉 Listener em tempo real
+  onSnapshot(collection(db, "quadro"), (snapshot) => {
+    quadros = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+
+    renderStats()
+    renderTables()
+    renderCharts()
+  })
+
+  // 👉 Formulário de edição
+  if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault()
+
+      const id = document.getElementById("editId").value
+      const novoTotal = parseInt(document.getElementById("editTotal").value, 10)
+      const novoFerias = parseInt(document.getElementById("editFerias").value, 10)
+      const novoDesaparecidos = parseInt(document.getElementById("editDesaparecidos").value, 10)
+      const novoAfastamento = parseInt(document.getElementById("editAfastamento").value, 10)
+      const novoInss = parseInt(document.getElementById("editInss").value, 10)
+
+      const novosAtivos = novoTotal - (novoFerias + novoDesaparecidos + novoAfastamento + novoInss)
+
+      try {
+        await updateDoc(doc(db, "quadro", id), {
+          total: novoTotal,
+          ferias: novoFerias,
+          desaparecidos: novoDesaparecidos,
+          afastamento: novoAfastamento,
+          inss: novoInss,
+          ativos: novosAtivos
+        })
+        fecharModal("editModal")
+        alert("Registro atualizado com sucesso!")
+      } catch (err) {
+        console.error("Erro ao atualizar:", err)
+        alert("Erro ao atualizar")
+      }
+    })
+  }
+
+  // 👉 Botão confirmar exclusão
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", async () => {
+      if (!deleteId) return
+      try {
+        await deleteDoc(doc(db, "quadro", deleteId))
+        fecharModal("deleteModal")
+        alert("Registro excluído com sucesso!")
+      } catch (err) {
+        console.error("Erro ao excluir:", err)
+        alert("Erro ao excluir")
+      }
     })
   }
 })
 
+/* ========= VISÃO GERAL ========= */
+function renderStats() {
+  const statsContainer = document.getElementById("quadroStats")
+  statsContainer.innerHTML = ""
+
+  // pega o último registro de cada turno
+  const ultimoManha = quadros.filter(q => q.turno === "Manhã").pop()
+  const ultimoTarde = quadros.filter(q => q.turno === "Tarde").pop()
+
+  const totalizador = { total: 0, ferias: 0, afastamento: 0, inss: 0, ativos: 0 }
+
+  ;[ultimoManha, ultimoTarde].forEach(reg => {
+    if (reg) {
+      totalizador.total += reg.total
+      totalizador.ferias += reg.ferias
+      totalizador.afastamento += reg.afastamento
+      totalizador.inss += reg.inss
+      totalizador.ativos += reg.ativos
+    }
+  })
+
+  const stats = [
+    { label: "Total", value: totalizador.total, icon: "users" },
+    { label: "Férias", value: totalizador.ferias, icon: "umbrella-beach" },
+    { label: "Afastamento", value: totalizador.afastamento, icon: "user-injured" },
+    { label: "INSS", value: totalizador.inss, icon: "file-medical" },
+    { label: "Ativos", value: totalizador.ativos, icon: "user-check" }
+  ]
+
+  stats.forEach(stat => {
+    const card = document.createElement("div")
+    card.classList.add("stat-card")
+    card.innerHTML = `
+      <div class="stat-icon"><i class="fas fa-${stat.icon}"></i></div>
+      <div class="stat-info">
+        <h4>${stat.value}</h4>
+        <p>${stat.label}</p>
+      </div>
+    `
+    statsContainer.appendChild(card)
+  })
+}
+
+/* ========= HISTÓRICO ========= */
 function renderTables() {
   const container = document.getElementById("quadroTables")
   container.innerHTML = ""
 
-  const turnos = ["Manhã", "Tarde"]
-  const totalizador = { total: 0, ferias: 0, desaparecidos: 0, afastamento: 0, inss: 0, ativos: 0 }
-
-  turnos.forEach(turno => {
-    const registros = quadros.filter(q => q.turno === turno)
-    if (registros.length > 0) {
-      const ultimo = registros[registros.length - 1]
-      totalizador.total += ultimo.total
-      totalizador.ferias += ultimo.ferias
-      totalizador.desaparecidos += ultimo.desaparecidos
-      totalizador.afastamento += ultimo.afastamento
-      totalizador.inss += ultimo.inss
-      totalizador.ativos += ultimo.ativos
-
-      container.appendChild(createTable(turno, ultimo))
-    }
-  })
-
-  container.appendChild(createTable("Total", totalizador))
+  // histórico em ordem decrescente (mais recente primeiro)
+  quadros
+    .sort((a,b) => (a.data < b.data ? 1 : -1))
+    .forEach(q => {
+      const row = document.createElement("div")
+      row.classList.add("table-row")
+      row.innerHTML = `
+        <div><strong>${q.data}</strong> - ${q.turno}</div>
+        <div>${q.total} total | Ativos: ${q.ativos}</div>
+        <div>
+          <button class="btn btn-sm btn-primary" onclick="abrirModalEdicao('${q.id}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="abrirModalExclusao('${q.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `
+      container.appendChild(row)
+    })
 }
 
-function createTable(titulo, dados) {
-  const table = document.createElement("table")
-  table.classList.add("data-table")
-  table.innerHTML = `
-    <thead><tr><th colspan="2">${titulo}</th></tr></thead>
-    <tbody>
-      <tr><td>Total</td><td>${dados.total}</td></tr>
-      <tr><td>Férias</td><td>${dados.ferias}</td></tr>
-      <tr><td>Desaparecidos</td><td>${dados.desaparecidos}</td></tr>
-      <tr><td>Afastamento</td><td>${dados.afastamento}</td></tr>
-      <tr><td>INSS</td><td>${dados.inss}</td></tr>
-      <tr><td>Ativos</td><td>${dados.ativos}</td></tr>
-    </tbody>
-  `
-  return table
+/* ========= MODAIS ========= */
+window.abrirModalEdicao = (id) => {
+  const registro = quadros.find(q => q.id === id)
+  if (!registro) return
+
+  document.getElementById("editId").value = registro.id
+  document.getElementById("editTotal").value = registro.total
+  document.getElementById("editFerias").value = registro.ferias
+  document.getElementById("editDesaparecidos").value = registro.desaparecidos
+  document.getElementById("editAfastamento").value = registro.afastamento
+  document.getElementById("editInss").value = registro.inss
+
+  document.getElementById("editModal").classList.remove("hidden")
 }
 
-let turnoChart, statusChart
+window.abrirModalExclusao = (id) => {
+  deleteId = id
+  document.getElementById("deleteModal").classList.remove("hidden")
+}
+
+window.fecharModal = (modalId) => {
+  document.getElementById(modalId).classList.add("hidden")
+  if (modalId === "deleteModal") deleteId = null
+}
+
+/* ========= GRÁFICOS ========= */
+let quadroTurnoChart, quadroStatusChart
 function renderCharts() {
-  const ctxTurno = document.getElementById("turnoChart").getContext("2d")
-  const ctxStatus = document.getElementById("statusChart").getContext("2d")
+  const ctxTurno = document.getElementById("quadroTurnoChart").getContext("2d")
+  const ctxStatus = document.getElementById("quadroStatusChart").getContext("2d")
 
   const totalManha = quadros.filter(q => q.turno === "Manhã").map(q => q.ativos).pop() || 0
   const totalTarde = quadros.filter(q => q.turno === "Tarde").map(q => q.ativos).pop() || 0
 
-  if (turnoChart) turnoChart.destroy()
-  turnoChart = new Chart(ctxTurno, {
+  if (quadroTurnoChart) quadroTurnoChart.destroy()
+  quadroTurnoChart = new Chart(ctxTurno, {
     type: "doughnut",
     data: {
       labels: ["Manhã", "Tarde"],
@@ -92,8 +227,8 @@ function renderCharts() {
     totalizador.inss += q.inss
   })
 
-  if (statusChart) statusChart.destroy()
-  statusChart = new Chart(ctxStatus, {
+  if (quadroStatusChart) quadroStatusChart.destroy()
+  quadroStatusChart = new Chart(ctxStatus, {
     type: "bar",
     data: {
       labels: ["Férias", "Afastamento", "INSS"],

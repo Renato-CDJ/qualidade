@@ -5,18 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quadro de Colaboradores</title>
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase + Lógica -->
+  <script type="module" src="quadro.js"></script>
 </head>
 <body>
   <main class="container">
+    <!-- Cabeçalho -->
+    <section class="section">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <h3>Quadro Diário</h3>
+        <a href="index.html" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </section>
+
+    <!-- Estatísticas -->
+    <section class="stats-grid" id="quadroStats">
+      <!-- Cards serão renderizados via JS -->
+    </section>
+
     <!-- Formulário -->
     <section class="section">
-      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Registrar Quadro Diário</h3>
-        <a href="index.html#treinamento" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
-
+      <div class="section-header">
+        <h3>Registrar Atualização</h3>
       </div>
       <form id="quadroForm" class="form-container">
         <div class="form-row">
@@ -36,12 +55,12 @@
       </form>
     </section>
 
-    <!-- Tabelas -->
+    <!-- Histórico -->
     <section class="section">
       <div class="section-header">
-        <h3>Quadro Atual</h3>
+        <h3>Histórico do Quadro</h3>
       </div>
-      <div id="quadroTables" class="quadro-tables"></div>
+      <div id="quadroTables" class="table-container"></div>
     </section>
 
     <!-- Gráficos -->
@@ -52,16 +71,47 @@
       <div class="charts-container">
         <div class="chart-card">
           <h4>Distribuição por Turno</h4>
-          <canvas id="turnoChart"></canvas>
+          <canvas id="quadroTurnoChart"></canvas>
         </div>
         <div class="chart-card">
           <h4>Férias / Afastamento / INSS</h4>
-          <canvas id="statusChart"></canvas>
+          <canvas id="quadroStatusChart"></canvas>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="quadro.js"></script>
+  <!-- Modal de Edição -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Editar Quadro</h3>
+      <form id="editForm" class="form-container">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <input type="number" id="editTotal" placeholder="Total" required>
+          <input type="number" id="editFerias" placeholder="Férias" required>
+          <input type="number" id="editDesaparecidos" placeholder="Desaparecidos" required>
+          <input type="number" id="editAfastamento" placeholder="Afastamento" required>
+          <input type="number" id="editInss" placeholder="INSS" required>
+        </div>
+        <div style="text-align:right;margin-top:10px;">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('editModal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Exclusão -->
+  <div id="deleteModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Confirmar Exclusão</h3>
+      <p>Tem certeza que deseja excluir este registro?</p>
+      <div style="text-align:right;margin-top:10px;">
+        <button type="button" class="btn btn-secondary" onclick="fecharModal('deleteModal')">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
