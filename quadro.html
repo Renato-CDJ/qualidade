@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quadro de Colaboradores</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <main class="container">
+    <!-- Formulário -->
+    <section class="section">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Registrar Quadro Diário</h3>
+        <a href="index.html#treinamento" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+
+      </div>
+      <form id="quadroForm" class="form-container">
+        <div class="form-row">
+          <input type="date" id="quadroData" required>
+          <select id="quadroTurno" required>
+            <option value="">Selecione o turno</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+          </select>
+          <input type="number" id="quadroTotal" placeholder="Total" required>
+          <input type="number" id="quadroFerias" placeholder="Férias" required>
+          <input type="number" id="quadroDesaparecidos" placeholder="Desaparecidos" required>
+          <input type="number" id="quadroAfastamento" placeholder="Afastamento" required>
+          <input type="number" id="quadroINSS" placeholder="INSS" required>
+          <button type="submit" class="btn btn-primary">Adicionar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Tabelas -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Quadro Atual</h3>
+      </div>
+      <div id="quadroTables" class="quadro-tables"></div>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="section">
+      <div class="section-header">
+        <h3>Análises</h3>
+      </div>
+      <div class="charts-container">
+        <div class="chart-card">
+          <h4>Distribuição por Turno</h4>
+          <canvas id="turnoChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Férias / Afastamento / INSS</h4>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="quadro.js"></script>
+</body>
+</html>

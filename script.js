@@ -135,8 +135,6 @@ document.addEventListener("change", async (e) => {
     }
   }
 })
-
-
     
     // Training section buttons
     document
@@ -548,38 +546,36 @@ document.getElementById("searchTrainingStatusTable")?.addEventListener("input", 
   switchTab(tabName) {
   const tabMap = {
     treinamento: "training",
-    solicitacoes: "solicitacoes",   // ✅ nova aba
+    solicitacoes: "solicitacoes",
     treinados: "trained",
-    desligamentos: "desligamentos"
+    desligamentos: "desligamentos",
+    quadro: "quadro"   // ✅ nova aba
   };
   const normalizedTab = tabMap[tabName] || tabName;
 
-  // Atualizar botões
-  document.querySelectorAll(".tab-btn").forEach((btn) =>
-    btn.classList.remove("active")
-  );
-  document.querySelector(`[data-tab="${tabName}"]`)?.classList.add("active");
-
-  // Atualizar conteúdo
-  document.querySelectorAll(".tab-content").forEach((content) => {
-    content.classList.remove("active");
-    content.classList.add("hidden");
+  // Esconde todas as abas
+  document.querySelectorAll(".tab-content").forEach(section => {
+    section.classList.add("hidden");
   });
 
-  const activeTab = document.getElementById(tabName);
-  if (activeTab) {
-    activeTab.classList.add("active");
-    activeTab.classList.remove("hidden"); // garante que aparece
+  // Mostra apenas a aba escolhida
+  const section = document.getElementById(tabName);
+  if (section) {
+    section.classList.remove("hidden");
   }
 
-  // Renderizar tabela apenas se não for "solicitacoes"
-  if (normalizedTab === "solicitacoes") {
-    // chama o sistema específico de solicitações
-    window.solicitacoesSystem?.renderTable();
-  } else {
-    this.renderTable?.(normalizedTab);
+  // Marca o botão ativo
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+  document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add("active");
+
+  // Renderiza tabelas SOMENTE se não for a aba Quadro
+  if (normalizedTab !== "quadro") {
+    this.renderTable(normalizedTab);
   }
 }
+
 
   showOnlySection(sectionId, tabName = "treinamento") {
   // Esconde a visão geral da aba ativa
@@ -3013,4 +3009,12 @@ window.trainingStatus = async function (docId, newStatus) {
     system.showNotification("Erro ao atualizar status", "error");
   }
 };
+
+// 🔥 Abrir aba correta com base no hash da URL (ex: index.html#treinamento)
+window.addEventListener("load", () => {
+  const hash = window.location.hash.replace("#", "")
+  if (hash) {
+    system.switchTab(hash)
+  }
+})
 
